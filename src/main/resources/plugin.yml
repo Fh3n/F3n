@@ -1,0 +1,18 @@
+name: MythicBlades
+version: '${project.version}'
+main: dev.mythicblades.MythicBladesPlugin
+api-version: '1.21'
+description: Eight legendary blades. One server. One truth.
+authors: [MythicBlades]
+
+commands:
+  mythicblades:
+    description: MythicBlades admin commands
+    aliases: [mb]
+    permission: mythicblades.admin
+    usage: /mb <give|reload|reset|awakened|status|debug|fuse> [args]
+
+permissions:
+  mythicblades.admin:
+    description: Full access to MythicBlades admin commands
+    default: op

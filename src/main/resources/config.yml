@@ -1,0 +1,274 @@
+# ============================================================
+#  MythicBlades Configuration
+#  Edit this file to change damage, cooldowns, and particles.
+#  After editing, run /mb reload in-game to apply changes.
+#  NO RESTARTING THE SERVER NEEDED.
+# ============================================================
+
+# ── AWAKENING ────────────────────────────────────────────────
+# How many kills with a sword before it Awakens
+awakening:
+  kills_required: 500
+
+
+# ── COLLECT ALL BUFF ─────────────────────────────────────────
+# Potion effect levels when a player owns all 7 swords
+# Level 0 = Potion I, Level 1 = Potion II, etc.
+collect_all_buff:
+  strength_level: 2
+  speed_level: 1
+  resistance_level: 1
+  regeneration_level: 1
+  jump_boost_level: 1
+
+
+# ============================================================
+#  SWORD SETTINGS
+#  Each sword has: damage values and cooldowns (in seconds)
+# ============================================================
+
+swords:
+
+  # ── BLADE OF THAW (Singularity) ──────────────────────────
+  blade_of_thaw:
+    glacial_monolith:
+      damage: 45.0
+      aoe_radius: 6.0
+      cooldown_seconds: 5
+    sentinels:
+      counter_damage: 15.0
+      xp_drain_per_second: 1
+    absolute_zero:
+      cooldown_minutes: 10
+      meltdown_duration_seconds: 15
+
+  # ── KAGURA NO TACHI (Singularity) ────────────────────────
+  kagura_no_tachi:
+    dual_resonance:
+      damage_per_slash: 35.0
+      range_blocks: 30
+      cooldown_seconds: 10
+    tenchi_kaimei:
+      initial_damage: 120.0
+      aftershock_damage_per_tick: 15.0
+      aoe_radius: 20.0
+      duration_seconds: 10
+      cooldown_seconds: 90
+
+  # ── EXCALIBUR (Mythic) ───────────────────────────────────
+  excalibur:
+    twin_strike:
+      damage_per_hit: 28.0
+      arc_range: 8.0
+      cooldown_seconds: 6
+    holy_pulse:
+      damage: 35.0
+      radius: 12.0
+      cooldown_seconds: 10
+    excalibur_ult:
+      initial_damage: 120.0
+      lightning_damage_per_strike: 18.0
+      radius_blocks: 30
+      duration_seconds: 10
+      cooldown_seconds: 60
+
+  # ── EA (Mythic) ──────────────────────────────────────────
+  ea:
+    sword_barrage:
+      damage_per_sword: 22.0
+      swords_per_target: 5
+      range: 20.0
+      cooldown_seconds: 8
+    void_slash:
+      damage: 30.0
+      range_blocks: 30
+      width_blocks: 5
+      cooldown_seconds: 12
+    enuma_elish:
+      beam_damage: 60.0
+      lightning_damage: 20.0
+      radius_blocks: 30
+      duration_seconds: 10
+      cooldown_seconds: 75
+
+  # ── MURASAME (Mythic) ────────────────────────────────────
+  murasame:
+    lethal_poison:
+      damage: 20.0
+      radius: 8.0
+      cooldown_seconds: 10
+    berserk_mode:
+      duration_seconds: 15
+      aura_damage_per_second: 8.0
+      cooldown_seconds: 120
+      # Debuff duration after berserk ends (seconds)
+      aftermath_duration_seconds: 120
+
+  # ── ENMA (Mythic) ────────────────────────────────────────
+  enma:
+    wither_level: 1
+    hakai_slash:
+      damage: 45.0
+      range_blocks: 50
+      width_blocks: 5
+      cooldown_seconds: 25
+
+  # ── AME NO HABAKIRI (Mythic) ─────────────────────────────
+  ame_no_habakiri:
+    god_slayer_multiplier: 3.5
+    heavenly_parry:
+      damage: 20.0
+      radius: 6.0
+      cooldown_seconds: 10
+    divine_severance:
+      damage: 50.0
+      range_blocks: 50
+      width_blocks: 5
+      cooldown_seconds: 30
+
+  # ── NICHIRIN (Legendary) ─────────────────────────────────
+  nichirin:
+    flame_hashira:
+      damage: 25.0
+      dash_range: 15
+      cooldown_seconds: 8
+    flame_sweep:
+      damage: 35.0
+      radius: 10.0
+      cooldown_seconds: 12
+    hinokami_kagura:
+      base_damage: 20.0
+      damage_per_strike_bonus: 5.0
+      strikes: 12
+      final_explosion_damage: 60.0
+      cooldown_seconds: 45
+
+  # ── SENBONZAKURA (Legendary) ─────────────────────────────
+  senbonzakura:
+    petal_bleed_damage_per_tick: 5.0
+    petal_bleed_duration_ticks: 10
+    scatter:
+      damage: 40.0
+      radius: 10.0
+      bleed_damage_per_tick: 5.0
+      cooldown_seconds: 12
+    petal_prison:
+      damage: 25.0
+      radius: 10.0
+      cage_damage_per_tick: 4.0
+      cooldown_seconds: 15
+    kageyoshi:
+      damage: 80.0
+      radius: 15.0
+      sustained_damage_per_tick: 6.0
+      cooldown_seconds: 60
+
+
+# ============================================================
+#  PARTICLE SETTINGS
+#  Change the particle type for each sword's effects.
+#  Valid particle names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+#  To disable a particle layer, set it to: NONE
+# ============================================================
+
+particles:
+
+  blade_of_thaw:
+    aura: SNOWFLAKE
+    aura_secondary: WHITE_ASH
+    projectile: SNOWFLAKE
+    impact: SNOWFLAKE
+    impact_secondary: WHITE_ASH
+    sentinel_orbit: END_ROD
+    cocoon: SNOWFLAKE
+
+  kagura_no_tachi:
+    aura_fire: FLAME
+    aura_holy: END_ROD
+    aura_chaos: DRAGON_BREATH
+    slash_fire: FLAME
+    slash_holy: END_ROD
+    tenchi_fire: FLAME
+    tenchi_holy: END_ROD
+    tenchi_chaos: DRAGON_BREATH
+
+  excalibur:
+    aura: END_ROD
+    aura_secondary: ENCHANT
+    beam: END_ROD
+    beam_secondary: ENCHANT
+    twin_strike: END_ROD
+    holy_pulse: END_ROD
+    explosion: EXPLOSION
+
+  ea:
+    aura: PORTAL
+    aura_secondary: DRAGON_BREATH
+    beam: PORTAL
+    beam_secondary: DRAGON_BREATH
+    lightning_tint: PORTAL
+    sword_trail: CRIT
+
+  murasame:
+    aura: DAMAGE_INDICATOR
+    strike: EFFECT
+    strike_secondary: DAMAGE_INDICATOR
+    berserk: DAMAGE_INDICATOR
+    berserk_secondary: FLAME
+
+  enma:
+    aura: FLAME
+    aura_secondary: SMOKE
+    slash: FLAME
+    slash_secondary: SMOKE
+    slash_chaos: PORTAL
+
+  ame_no_habakiri:
+    aura: END_ROD
+    aura_secondary: ENCHANT
+    parry: END_ROD
+    beam: END_ROD
+    beam_secondary: ENCHANT
+
+  nichirin:
+    aura: FLAME
+    aura_secondary: LAVA
+    dash_trail: FLAME
+    sweep: FLAME
+    sweep_secondary: END_ROD
+    spiral: FLAME
+
+  senbonzakura:
+    # SAKURA THEMED — change these to adjust petal colors/style
+    aura: CHERRY_LEAVES
+    aura_secondary: ENCHANT
+    scatter_storm: CHERRY_LEAVES
+    scatter_secondary: ENCHANT
+    petal_bleed: CHERRY_LEAVES
+    prison_cage: CHERRY_LEAVES
+    kageyoshi: CHERRY_LEAVES
+    kageyoshi_secondary: ENCHANT
+    kageyoshi_explosion: EXPLOSION
+
+
+# ============================================================
+#  MESSAGE SETTINGS
+#  Customize what players see when swords are used.
+#  Use & for colors (e.g. &6 = gold, &c = red, &5 = purple)
+#  Use {player} for player name, {sword} for sword name
+# ============================================================
+
+messages:
+  sword_forged: "&8[&6MythicBlades&8] &f{player} &7has forged &f{sword} &8[{tier}&8]"
+  sword_already_claimed: "&8[&6MythicBlades&8] &f{sword} &7already walks this world, bound to &f{owner}&7."
+  sword_returned: "&6[MythicBlades] &7Your blade has returned to you."
+  all_seven_collected: "&6&l[MythicBlades] ✦ ALL SEVEN BLADES UNITED ✦"
+  all_seven_message: "&eYou have gathered all seven mythic blades. The world bends to your will."
+  fusion_broadcast: "&5[MythicBlades] &f{player} &5has forged &fKagura no Tachi &5— Blade of the Divine Dance."
+  awakening_progress: "&6[MythicBlades] {sword} awakening: {kills}/{max} kills"
+  awakening_complete: "&e⚡ {sword} has been AWAKENED!"
+  excalibur_ult_broadcast: "&e[MythicBlades] &f{player} &ehas unleashed &fExcalibur&e!"
+  ea_ult_broadcast: "&4[MythicBlades] &f{player} &4has unleashed &fEnuma Elish&4. Run."
+  kagura_ult_broadcast: "&5[MythicBlades] &f{player} &5has unleashed &fTenchi Kaimei&5. One half screaming. One half silent."
+  senbonzakura_ult_broadcast: "&d[MythicBlades] &f{player} &5has unleashed &fSenbonzakura Kageyoshi&5..."
+  absolute_zero_broadcast: "&b[MythicBlades] &f{player} &bwas encased in &fAbsolute Zero&b. They are not dead yet."
