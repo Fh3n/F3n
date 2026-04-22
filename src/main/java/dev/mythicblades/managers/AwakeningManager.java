@@ -17,13 +17,8 @@ import java.util.UUID;
 public class AwakeningManager {
 
     private final MythicBladesPlugin plugin;
-    // key: playerUUID:swordId -> kill count
     private final Map<String, Integer> killProgress = new HashMap<>();
-    // key: playerUUID:swordId -> awakened
-    private final Map<String, Boolean> awakenedMap = new HashMap<>();
-
-    private static final int KILLS_REQUIRED = 500;
-
+    private final Map<String, Boolean> awakenedMap  = new HashMap<>();
     private File dataFile;
     private FileConfiguration data;
 
@@ -32,9 +27,7 @@ public class AwakeningManager {
         loadData();
     }
 
-    private String key(UUID player, SwordType type) {
-        return player + ":" + type.getId();
-    }
+    private String key(UUID player, SwordType type) { return player + ":" + type.getId(); }
 
     public boolean isAwakened(UUID player, SwordType type) {
         return Boolean.TRUE.equals(awakenedMap.get(key(player, type)));
@@ -49,48 +42,32 @@ public class AwakeningManager {
         String k = key(player.getUniqueId(), type);
         int kills = killProgress.getOrDefault(k, 0) + 1;
         killProgress.put(k, kills);
-
+        int required = plugin.getConfigManager().getKillsRequired();
         if (kills % 50 == 0) {
-            player.sendMessage(Component.text(
-                "[MythicBlades] " + type.getDisplayName() + " awakening: " + kills + "/" + KILLS_REQUIRED + " kills",
-                NamedTextColor.GOLD));
+            player.sendMessage(Component.text("[MythicBlades] " + type.getDisplayName() +
+                " awakening: " + kills + "/" + required + " kills", NamedTextColor.GOLD));
         }
-
-        if (kills >= KILLS_REQUIRED) {
-            awaken(player, type);
-        }
+        if (kills >= required) awaken(player, type);
     }
 
     public void awaken(Player player, SwordType type) {
-        String k = key(player.getUniqueId(), type);
-        awakenedMap.put(k, true);
-
-        // Update the actual item in their inventory
+        awakenedMap.put(key(player.getUniqueId(), type), true);
         for (int i = 0; i < player.getInventory().getSize(); i++) {
             var item = player.getInventory().getItem(i);
-            if (item != null) {
-                SwordType held = plugin.getSwordManager().getSwordType(item);
-                if (held == type) {
-                    plugin.getSwordManager().setAwakened(item);
-                    player.getInventory().setItem(i, item);
-                    break;
-                }
+            if (item != null && plugin.getSwordManager().getSwordType(item) == type) {
+                plugin.getSwordManager().setAwakened(item);
+                player.getInventory().setItem(i, item);
+                break;
             }
         }
-
         player.sendMessage(Component.text("⚡ " + type.getDisplayName() + " has been AWAKENED!", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("The blade stirs with new power...", NamedTextColor.GOLD));
-
-        // Check if both Enma and Habakiri are awakened for fusion hint
         if (type == SwordType.ENMA || type == SwordType.AME_NO_HABAKIRI) {
-            boolean enmaAwake = isAwakened(player.getUniqueId(), SwordType.ENMA);
-            boolean habaAwake = isAwakened(player.getUniqueId(), SwordType.AME_NO_HABAKIRI);
-            if (enmaAwake && habaAwake) {
-                player.sendMessage(Component.text("§5✦ Both Enma and Ame no Habakiri are Awakened. The Divine Dance awaits...", NamedTextColor.LIGHT_PURPLE));
-                player.sendMessage(Component.text("§7Hold both swords and use /mb fuse to attempt the fusion.", NamedTextColor.GRAY));
+            if (isAwakened(player.getUniqueId(), SwordType.ENMA) &&
+                isAwakened(player.getUniqueId(), SwordType.AME_NO_HABAKIRI)) {
+                player.sendMessage(Component.text(
+                    "§5✦ Both Enma and Ame no Habakiri are Awakened. Run /mb fuse.", NamedTextColor.LIGHT_PURPLE));
             }
         }
-
         saveData();
     }
 
@@ -101,23 +78,17 @@ public class AwakeningManager {
             try { dataFile.createNewFile(); } catch (IOException e) { e.printStackTrace(); }
         }
         data = YamlConfiguration.loadConfiguration(dataFile);
-        if (data.contains("kills")) {
-            for (String k : data.getConfigurationSection("kills").getKeys(false)) {
+        if (data.contains("kills"))
+            for (String k : data.getConfigurationSection("kills").getKeys(false))
                 killProgress.put(k, data.getInt("kills." + k));
-            }
-        }
-        if (data.contains("awakened")) {
-            for (String k : data.getConfigurationSection("awakened").getKeys(false)) {
+        if (data.contains("awakened"))
+            for (String k : data.getConfigurationSection("awakened").getKeys(false))
                 awakenedMap.put(k, data.getBoolean("awakened." + k));
-            }
-        }
     }
 
     public void saveData() {
-        for (Map.Entry<String, Integer> e : killProgress.entrySet())
-            data.set("kills." + e.getKey(), e.getValue());
-        for (Map.Entry<String, Boolean> e : awakenedMap.entrySet())
-            data.set("awakened." + e.getKey(), e.getValue());
+        killProgress.forEach((k, v) -> data.set("kills." + k, v));
+        awakenedMap.forEach((k, v) -> data.set("awakened." + k, v));
         try { data.save(dataFile); } catch (IOException e) { e.printStackTrace(); }
     }
 }

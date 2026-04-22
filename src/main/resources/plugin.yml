@@ -1,5 +1,5 @@
 name: MythicBlades
-version: '${project.version}'
+version: '1.0.0'
 main: dev.mythicblades.MythicBladesPlugin
 api-version: '1.21'
 description: Eight legendary blades. One server. One truth.

@@ -13,200 +13,168 @@ import java.util.*;
 
 public class MurasameSkills {
 
-    private static final String SKILL_POISON = "lethal_poison";
-    private static final String ULT_BERSERK  = "berserk_mode";
-
-    // ── CURSE SYSTEM ─────────────────────────────
+    // Curse stack tracking — max 5
     private static final Map<UUID, Integer> curseStacks = new HashMap<>();
-    private static final Set<UUID> marked = new HashSet<>();
+    private static final Set<UUID>          marked      = new HashSet<>();
 
-    // ─────────────────────────────────────────────
-    // PASSIVE — CLEAN + CONTROLLED
-    // ─────────────────────────────────────────────
-    public static void applyMurasameCurse(LivingEntity target, Player attacker) {
-
+    // ── Passive ───────────────────────────────────────────────────────────────
+    // Each hit applies a curse stack + wither. At max stacks, target takes bonus damage.
+    public static void applyMurasameCurse(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         UUID id = target.getUniqueId();
-
+        int maxStacks = plugin.getConfigManager().skillInt("murasame", "passive", "max_stacks", 5);
+        int stacks = Math.min(curseStacks.getOrDefault(id, 0) + 1, maxStacks);
+        curseStacks.put(id, stacks);
         marked.add(id);
-        curseStacks.put(id, Math.min(curseStacks.getOrDefault(id, 0) + 1, 5));
 
-        target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 80, 1));
-        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 60, 1));
+        int witDur = plugin.getConfigManager().skillInt("murasame", "passive", "wither_duration", 80);
+        int witAmp = plugin.getConfigManager().skillInt("murasame", "passive", "wither_amplifier", 1);
+        int wkDur  = plugin.getConfigManager().skillInt("murasame", "passive", "weakness_duration", 60);
 
-        ParticleUtils.spawnPoisonStrike(target.getLocation(), null);
+        target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, witAmp));
+        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, wkDur, 0));
+
+        ParticleUtils.spawn(target.getWorld(), Particle.DAMAGE_INDICATOR,
+            target.getLocation().add(0, 1, 0), 3, 0.2, 0.3, 0.2, 0.05);
 
         if (target instanceof Player p) {
-            p.sendMessage("§4☠ You have been marked...");
+            String bar = getCurseBar(stacks);
+            p.sendActionBar(Component.text(bar));
         }
     }
 
-    // ─────────────────────────────────────────────
-    // HUD SYSTEM (ACTIONBAR)
-    // ─────────────────────────────────────────────
-    public static void updateCurseHud(Player player) {
+    private static String getCurseBar(int stacks) {
+        return switch (stacks) {
+            case 1 -> "§7☠ Curse I";
+            case 2 -> "§c☠ Curse II";
+            case 3 -> "§4☠☠ Curse III";
+            case 4 -> "§5☠☠ Curse IV";
+            default -> "§5§l☠☠ CURSE MAXIMUM ☠☠";
+        };
+    }
 
+    public static void updateCurseHud(Player player) {
         int stacks = curseStacks.getOrDefault(player.getUniqueId(), 0);
         if (stacks <= 0) return;
-
-        String bar = switch (stacks) {
-            case 1 -> "§7☠ Curse I §8✕";
-            case 2 -> "§c☠ Curse II §8✕✕";
-            case 3 -> "§4☠ Curse III §8✕✕✕";
-            case 4 -> "§5☠ Curse IV §8✕✕✕✕";
-            default -> "§5☠☠ CURSE MAXIMUM ☠☠";
-        };
-
-        player.sendActionBar(Component.text(bar));
+        player.sendActionBar(Component.text(getCurseBar(stacks)));
     }
 
     public static void startHudTask(MythicBladesPlugin plugin) {
-
         new BukkitRunnable() {
-            @Override
-            public void run() {
-
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    updateCurseHud(p);
-                }
-
+            @Override public void run() {
+                for (Player p : plugin.getServer().getOnlinePlayers()) updateCurseHud(p);
             }
         }.runTaskTimer(plugin, 0L, 5L);
     }
 
-    // ─────────────────────────────────────────────
-    // LETHAL POISON (CLEANER AOE BURST)
-    // ─────────────────────────────────────────────
+    // ── Curse Mark / Lethal Poison (RMB) ──────────────────────────────────────
+    // Detonate all marked targets in range — more stacks = more damage
     public static void lethalPoisonActive(Player player, MythicBladesPlugin plugin) {
-
         var cd = plugin.getCooldownManager();
-
-        if (cd.isOnCooldown(player.getUniqueId(), SKILL_POISON)) {
-            player.sendMessage("§4Curse Mark: " +
-                    cd.getRemainingSeconds(player.getUniqueId(), SKILL_POISON) + "s");
+        if (cd.isOnCooldown(player.getUniqueId(), "lethal_poison")) {
+            player.sendMessage("§4Curse Mark: " + cd.getRemainingSeconds(player.getUniqueId(), "lethal_poison") + "s");
             return;
         }
+        cd.set(player.getUniqueId(), "lethal_poison", plugin.getConfigManager().skillCooldownMs("murasame", "lethal_poison"));
 
-        cd.set(player.getUniqueId(), SKILL_POISON,
-                plugin.getConfigManager().getCooldownMs("murasame", "lethal_poison"));
+        double baseDmg   = plugin.getConfigManager().skill("murasame", "lethal_poison", "damage", 10.0);
+        double radius    = plugin.getConfigManager().skill("murasame", "lethal_poison", "radius", 6.0);
+        int witDur       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "wither_duration", 120);
+        int witAmp       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "wither_amplifier", 1);
+        int slwDur       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "slowness_duration", 100);
+        int slwAmp       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "slowness_amplifier", 2);
+        int stacksApply  = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "curse_stacks_applied", 3);
 
         World world = player.getWorld();
         Location loc = player.getLocation().add(0, 1, 0);
 
-        double radius = 6.0;
-
         player.sendMessage("§4☠ CURSE MARK — Death begins.");
-
         world.playSound(loc, Sound.ENTITY_WITHER_AMBIENT, 1f, 0.6f);
         world.spawnParticle(Particle.SMOKE, loc, 15, 0.5, 0.5, 0.5, 0.02);
 
         for (Entity e : world.getNearbyEntities(loc, radius, radius, radius)) {
-
             if (!(e instanceof LivingEntity le) || e == player) continue;
-
             UUID id = le.getUniqueId();
+            int existingStacks = curseStacks.getOrDefault(id, 0);
 
+            // Detonate existing stacks
+            double detonationDmg = baseDmg + existingStacks * 4.0;
+            le.damage(detonationDmg, player);
+
+            // Apply fresh stacks
+            curseStacks.put(id, stacksApply);
             marked.add(id);
-            curseStacks.put(id, 3);
 
-            le.damage(10.0, player);
-            le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 120, 1));
-            le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
+            le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, witAmp));
+            le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slwDur, slwAmp));
+            ParticleUtils.spawn(world, Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 10, 0.4, 0.4, 0.4, 0.1);
 
-            ParticleUtils.spawnPoisonStrike(le.getLocation(), plugin);
-
-            if (le instanceof Player p) {
-                p.sendMessage("§4☠ YOU ARE MARKED.");
-            }
+            if (le instanceof Player p) p.sendMessage("§4☠ YOU ARE MARKED.");
         }
     }
 
-    // ─────────────────────────────────────────────
-    // BERSERK MODE (CURSE OVERFLOW CLEANED)
-    // ─────────────────────────────────────────────
+    // ── Berserk Mode (Shift+RMB) ──────────────────────────────────────────────
+    // Strength V + Speed III for duration; aura pulses curse damage; aftermath debuff
     public static void berserkMode(Player player, MythicBladesPlugin plugin) {
-
         var cd = plugin.getCooldownManager();
-
-        if (cd.isOnCooldown(player.getUniqueId(), ULT_BERSERK)) {
-            player.sendMessage("§4Berserk: " +
-                    cd.getRemainingSeconds(player.getUniqueId(), ULT_BERSERK) + "s");
+        if (cd.isOnCooldown(player.getUniqueId(), "berserk_mode")) {
+            player.sendMessage("§4Berserk: " + cd.getRemainingSeconds(player.getUniqueId(), "berserk_mode") + "s");
             return;
         }
+        cd.set(player.getUniqueId(), "berserk_mode", plugin.getConfigManager().skillCooldownMs("murasame", "berserk_mode"));
 
-        cd.set(player.getUniqueId(), ULT_BERSERK,
-                plugin.getConfigManager().getCooldownMs("murasame", "berserk_mode"));
-
-        int dur = plugin.getConfigManager()
-                .getInt("swords.murasame.berserk_mode.duration_seconds", 15) * 20;
+        int durTicks  = plugin.getConfigManager().skillInt("murasame", "berserk_mode", "duration", 15) * 20;
+        double aoeDmg = plugin.getConfigManager().skill("murasame", "berserk_mode", "aura_damage_base", 5.0);
+        double aoeR   = plugin.getConfigManager().skill("murasame", "berserk_mode", "aura_radius", 4.0);
+        int interval  = plugin.getConfigManager().skillInt("murasame", "berserk_mode", "aura_tick_interval", 15);
+        int strAmp    = plugin.getConfigManager().skillInt("murasame", "berserk_mode", "strength_amplifier", 3);
+        int spdAmp    = plugin.getConfigManager().skillInt("murasame", "berserk_mode", "speed_amplifier", 2);
 
         World world = player.getWorld();
 
-        player.sendMessage("§4§l★ CURSE OVERFLOW — AWAKENING");
+        player.sendMessage("§4§l★ CURSE OVERFLOW — BERSERK");
         world.playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1f, 0.5f);
-
-        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, dur, 3));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, dur, 2));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, durTicks, strAmp));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durTicks, spdAmp));
 
         new BukkitRunnable() {
-
             int tick = 0;
-
-            @Override
-            public void run() {
-
-                if (!player.isOnline() || tick >= dur) {
+            @Override public void run() {
+                if (!player.isOnline() || tick >= durTicks) {
                     cancel();
-                    aftermath(player);
+                    berserkAftermath(player, plugin);
                     return;
                 }
-
                 Location loc = player.getLocation().add(0, 1, 0);
+                if (tick % 4 == 0)
+                    world.spawnParticle(Particle.DAMAGE_INDICATOR, loc, 2, 0.4, 0.5, 0.4, 0.03);
 
-                world.spawnParticle(Particle.SMOKE, loc, 8, 0.4, 0.4, 0.4, 0.01);
-
-                if (tick % 15 == 0) {
-
-                    for (Entity e : world.getNearbyEntities(player.getLocation(), 4, 3, 4)) {
-
+                if (tick % interval == 0) {
+                    for (Entity e : world.getNearbyEntities(player.getLocation(), aoeR, aoeR, aoeR)) {
                         if (!(e instanceof LivingEntity le) || e == player) continue;
-
                         UUID id = le.getUniqueId();
-
-                        curseStacks.put(id, curseStacks.getOrDefault(id, 0) + 1);
-
-                        le.damage(5.0 + curseStacks.get(id), player);
+                        int stacks = curseStacks.getOrDefault(id, 0) + 1;
+                        curseStacks.put(id, stacks);
+                        le.damage(aoeDmg + stacks, player);
                         le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 1));
-
-                        ParticleUtils.spawnPoisonStrike(le.getLocation(), plugin);
+                        ParticleUtils.spawn(world, Particle.DAMAGE_INDICATOR,
+                            le.getLocation().add(0, 1, 0), 4, 0.2, 0.3, 0.2, 0.05);
                     }
                 }
-
                 tick++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ─────────────────────────────────────────────
-    // AFTERMATH (WEAKENED STATE FEELING)
-    // ─────────────────────────────────────────────
-    private static void aftermath(Player player) {
-
+    private static void berserkAftermath(Player player, MythicBladesPlugin plugin) {
         if (!player.isOnline()) return;
-
-        World world = player.getWorld();
-
+        int wkDur  = plugin.getConfigManager().skillInt("murasame", "berserk_mode", "aftermath_weakness_duration", 200);
+        int slwDur = plugin.getConfigManager().skillInt("murasame", "berserk_mode", "aftermath_slowness_duration", 200);
         player.sendMessage("§4☠ The blade demands repayment.");
-
-        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 200, 1));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 200, 1));
-
-        world.spawnParticle(Particle.SMOKE, player.getLocation(), 20, 1, 1, 1, 0.02);
-        world.playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.7f, 0.4f);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, wkDur, 1));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slwDur, 1));
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 0.7f, 0.4f);
     }
 
-    // ─────────────────────────────────────────────
-    // CLEANUP HELPERS
-    // ─────────────────────────────────────────────
     public static void clearCurse(UUID id) {
         curseStacks.remove(id);
         marked.remove(id);

@@ -15,130 +15,127 @@ import java.util.UUID;
 
 public class HabakiriSkills {
 
-    private static final String SKILL_PARRY = "heavenly_parry";
-    private static final String ULT_SEVERANCE = "divine_severance";
-
-    // ── Passive ─────────────────────────
-    public static void applyWaterPassive(LivingEntity target, Player attacker) {
-        target.damage(3.0, attacker);
-        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 40, 0));
-        ParticleUtils.spawnWaterHitEffect(target.getLocation());
+    // ── Passive ───────────────────────────────────────────────────────────────
+    public static void applyWaterPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
+        double bonus = plugin.getConfigManager().skill("ame_no_habakiri", "passive", "bonus_damage", 3.0);
+        int wkDur    = plugin.getConfigManager().skillInt("ame_no_habakiri", "passive", "weakness_duration", 40);
+        target.damage(bonus, attacker);
+        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, wkDur, 0));
+        ParticleUtils.spawn(target.getWorld(), Particle.END_ROD,
+            target.getLocation().add(0, 1, 0), 4, 0.2, 0.2, 0.2, 0.02);
     }
 
+    // God-slayer multiplier applied in SwordPassiveListener
     public static void godSlayerInfo(Player player, MythicBladesPlugin plugin) {
-        double mult = plugin.getConfigManager()
-                .getDouble("swords.ame_no_habakiri.god_slayer_multiplier", 3.5);
-        player.sendMessage("§bGod-Slayer (Passive): " + mult +
-                "x damage vs Ender Dragon, Wither, Elder Guardian, Warden.");
+        double mult = plugin.getConfigManager().swordVal("ame_no_habakiri", "god_slayer.multiplier", 3.5);
+        player.sendMessage("§bGod-Slayer (Passive): §f" + mult + "x §bdamage vs Ender Dragon, Wither, Elder Guardian, Warden.");
     }
 
-    // ── Heavenly Parry (Hammer-style) ─────────────────────────
+    // ── Heavenly Parry (RMB) ──────────────────────────────────────────────────
+    // Leap straight up; on landing, burst shockwave damages all nearby
     public static void heavenlyParry(Player player, MythicBladesPlugin plugin) {
-        if (!player.isOnline()) return;
-
         var cd = plugin.getCooldownManager();
-        if (cd.isOnCooldown(player.getUniqueId(), SKILL_PARRY)) {
-            player.sendMessage("§fHeavenly Parry: " +
-                    cd.getRemainingSeconds(player.getUniqueId(), SKILL_PARRY) + "s");
+        if (cd.isOnCooldown(player.getUniqueId(), "heavenly_parry")) {
+            player.sendMessage("§fHeavenly Parry: " + cd.getRemainingSeconds(player.getUniqueId(), "heavenly_parry") + "s");
             return;
         }
-        cd.set(player.getUniqueId(), SKILL_PARRY,
-                plugin.getConfigManager().getCooldownMs("ame_no_habakiri", "heavenly_parry"));
+        cd.set(player.getUniqueId(), "heavenly_parry", plugin.getConfigManager().skillCooldownMs("ame_no_habakiri", "heavenly_parry"));
+
+        double dmg  = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "damage", 20.0);
+        double r    = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "radius", 6.0);
+        double launchY = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "launch_velocity_y", 1.5);
+        double kbY  = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "knockback_y", 0.5);
 
         World world = player.getWorld();
-        double dmg = plugin.getConfigManager().getDamage("ame_no_habakiri", "heavenly_parry");
-        double radius = 6.0;
 
         player.sendMessage("§f✦ Heavenly Parry!");
         world.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 2f);
 
-        // Jump straight up
-        player.setVelocity(new Vector(0, 1.5, 0));
+        // Brief invuln during ascent
+        player.setInvulnerable(true);
+        player.setVelocity(new Vector(0, launchY, 0));
 
-        // Runnable to detect landing
+        // Ring of holy particles around launch point
+        ParticleUtils.ring(world, Particle.END_ROD, player.getLocation().add(0, 0.5, 0), r * 0.5, 16);
+
         new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline()) {
-                    cancel();
-                    return;
-                }
-
+            int wait = 0;
+            @Override public void run() {
+                if (!player.isOnline()) { player.setInvulnerable(false); cancel(); return; }
+                wait++;
+                // Wait until player starts falling and hits ground (min 5 ticks airtime)
+                if (wait < 5) return;
                 if (player.isOnGround()) {
+                    player.setInvulnerable(false);
                     Location landing = player.getLocation().add(0, 0.5, 0);
+
                     world.playSound(landing, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.5f);
                     world.spawnParticle(Particle.SWEEP_ATTACK, landing, 15, 1, 0.5, 1, 0.1);
+                    ParticleUtils.ring(world, Particle.END_ROD, landing, r, 24);
+                    world.spawnParticle(Particle.ENCHANT, landing, 20, r * 0.4, 0.3, r * 0.4, 0.5);
 
-                    for (Entity e : world.getNearbyEntities(landing, radius, 2, radius)) {
-                        if (e instanceof LivingEntity le && le != player) {
-                            le.damage(dmg, player);
-                            le.setVelocity(new Vector(0, 0.5, 0));
-                        }
+                    for (Entity e : world.getNearbyEntities(landing, r, 2, r)) {
+                        if (!(e instanceof LivingEntity le) || e == player) continue;
+                        le.damage(dmg, player);
+                        le.setVelocity(new Vector(0, kbY, 0));
                     }
-                    cancel(); // Stop runnable after landing effect
+                    cancel();
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Divine Severance ─────────────────────────
+    // ── Divine Severance (Shift+RMB) ──────────────────────────────────────────
+    // Long holy beam — clean directional, bypasses armor feel
     public static void divineSeverance(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
-        if (cd.isOnCooldown(player.getUniqueId(), ULT_SEVERANCE)) {
-            player.sendMessage("§fDivine Severance: " +
-                    cd.getRemainingSeconds(player.getUniqueId(), ULT_SEVERANCE) + "s");
+        if (cd.isOnCooldown(player.getUniqueId(), "divine_severance")) {
+            player.sendMessage("§fDivine Severance: " + cd.getRemainingSeconds(player.getUniqueId(), "divine_severance") + "s");
             return;
         }
-        cd.set(player.getUniqueId(), ULT_SEVERANCE,
-                plugin.getConfigManager().getCooldownMs("ame_no_habakiri", "divine_severance"));
+        cd.set(player.getUniqueId(), "divine_severance", plugin.getConfigManager().skillCooldownMs("ame_no_habakiri", "divine_severance"));
+
+        double dmg    = plugin.getConfigManager().skill("ame_no_habakiri", "divine_severance", "damage", 50.0);
+        double range  = plugin.getConfigManager().skill("ame_no_habakiri", "divine_severance", "range", 30.0);
+        double stepSz = plugin.getConfigManager().skill("ame_no_habakiri", "divine_severance", "step_size", 1.5);
+        double hbox   = plugin.getConfigManager().skill("ame_no_habakiri", "divine_severance", "hitbox", 3.0);
+        double kbY    = plugin.getConfigManager().skill("ame_no_habakiri", "divine_severance", "knockback_y", 0.5);
+        int strDur    = plugin.getConfigManager().skillInt("ame_no_habakiri", "divine_severance", "strength_duration", 40);
 
         World world = player.getWorld();
         Location start = player.getLocation().add(0, 1, 0);
         Vector dir = start.getDirection().normalize();
-        double range = 30;
-        double dmg = plugin.getConfigManager().getDamage("ame_no_habakiri", "divine_severance");
 
         player.sendMessage("§f§l★ DIVINE SEVERANCE");
         world.playSound(start, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 2f);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 40, 1));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, strDur,
+            plugin.getConfigManager().skillInt("ame_no_habakiri", "divine_severance", "strength_amplifier", 1)));
 
         Set<UUID> hit = new HashSet<>();
 
         new BukkitRunnable() {
             double step = 0;
             Location cur = start.clone();
-
-            @Override
-            public void run() {
+            @Override public void run() {
                 if (!player.isOnline() || step > range) {
+                    // Final strike at end
+                    world.strikeLightningEffect(cur);
+                    world.playSound(cur, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.2f);
                     cancel();
                     return;
                 }
-
-                cur.add(dir.clone().multiply(1.5));
+                cur.add(dir.clone().multiply(stepSz));
                 if (step % 2 == 0) {
                     world.spawnParticle(Particle.SWEEP_ATTACK, cur, 5, 1, 0.5, 1, 0.05);
+                    world.spawnParticle(Particle.END_ROD, cur, 3, 0.3, 0.3, 0.3, 0.03);
                 }
-
-                for (Entity e : world.getNearbyEntities(cur, 3, 2, 3)) {
-                    if (e instanceof LivingEntity le && e != player && hit.add(e.getUniqueId())) {
-                        le.damage(dmg, player);
-                        le.setVelocity(new Vector(0, 0.5, 0));
-                    }
+                for (Entity e : world.getNearbyEntities(cur, hbox, 2, hbox)) {
+                    if (!(e instanceof LivingEntity le) || e == player || !hit.add(e.getUniqueId())) continue;
+                    le.damage(dmg, player);
+                    le.setVelocity(new Vector(0, kbY, 0));
                 }
-
                 step++;
             }
         }.runTaskTimer(plugin, 0L, 2L);
-
-        // Final strike effect
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline()) return;
-                world.strikeLightningEffect(start.clone().add(dir.clone().multiply(range)));
-                world.playSound(start, Sound.ENTITY_GENERIC_EXPLODE, 1f, 0.5f);
-            }
-        }.runTaskLater(plugin, 25L);
     }
 }

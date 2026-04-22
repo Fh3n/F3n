@@ -1,7 +1,6 @@
 package dev.mythicblades.listeners;
 
 import dev.mythicblades.MythicBladesPlugin;
-import dev.mythicblades.SwordType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,9 +12,7 @@ public class CollectAllListener implements Listener {
 
     private final MythicBladesPlugin plugin;
 
-    public CollectAllListener(MythicBladesPlugin plugin) {
-        this.plugin = plugin;
-    }
+    public CollectAllListener(MythicBladesPlugin plugin) { this.plugin = plugin; }
 
     @EventHandler
     public void onPickup(PlayerPickupItemEvent event) {
@@ -25,9 +22,8 @@ public class CollectAllListener implements Listener {
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (plugin.getOwnershipManager().ownsAllSeven(player) &&
-                !plugin.getBuffManager().hasBuff(player)) {
+                !plugin.getBuffManager().hasBuff(player))
                 plugin.getBuffManager().applyCollectAllBuff(player);
-            }
         }, 5L);
     }
 
@@ -39,9 +35,8 @@ public class CollectAllListener implements Listener {
 
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (plugin.getOwnershipManager().ownsAllSeven(player) &&
-                !plugin.getBuffManager().hasBuff(player)) {
+                !plugin.getBuffManager().hasBuff(player))
                 plugin.getBuffManager().applyCollectAllBuff(player);
-            }
         }, 5L);
     }
 }

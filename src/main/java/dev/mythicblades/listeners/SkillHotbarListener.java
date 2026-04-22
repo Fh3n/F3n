@@ -13,21 +13,15 @@ public class SkillHotbarListener implements Listener {
 
     private final MythicBladesPlugin plugin;
 
-    public SkillHotbarListener(MythicBladesPlugin plugin) {
-        this.plugin = plugin;
-    }
+    public SkillHotbarListener(MythicBladesPlugin plugin) { this.plugin = plugin; }
 
     @EventHandler
     public void onItemSwitch(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
         ItemStack newItem = player.getInventory().getItem(event.getNewSlot());
         SwordType type = plugin.getSwordManager().getSwordType(newItem);
-
-        if (type == null) {
-            plugin.getSkillHotbarManager().clearSkillBar(player);
-        } else {
-            plugin.getSkillHotbarManager().showSkillBar(player, type);
-        }
+        if (type == null) plugin.getSkillHotbarManager().clearSkillBar(player);
+        else               plugin.getSkillHotbarManager().showSkillBar(player, type);
     }
 
     @EventHandler

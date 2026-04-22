@@ -51,13 +51,13 @@ public class MythicBladesPlugin extends JavaPlugin {
         getLogger().info("MythicBlades sealed.");
     }
 
-    public static MythicBladesPlugin getInstance() { return instance; }
-    public ConfigManager getConfigManager()        { return configManager; }
-    public SwordManager getSwordManager()          { return swordManager; }
-    public OwnershipManager getOwnershipManager()  { return ownershipManager; }
-    public AwakeningManager getAwakeningManager()  { return awakeningManager; }
-    public FusionManager getFusionManager()        { return fusionManager; }
-    public SkillHotbarManager getSkillHotbarManager(){ return skillHotbarManager; }
-    public CooldownManager getCooldownManager()    { return cooldownManager; }
-    public BuffManager getBuffManager()            { return buffManager; }
+    public static MythicBladesPlugin getInstance()      { return instance; }
+    public ConfigManager getConfigManager()              { return configManager; }
+    public SwordManager getSwordManager()                { return swordManager; }
+    public OwnershipManager getOwnershipManager()        { return ownershipManager; }
+    public AwakeningManager getAwakeningManager()        { return awakeningManager; }
+    public FusionManager getFusionManager()              { return fusionManager; }
+    public SkillHotbarManager getSkillHotbarManager()    { return skillHotbarManager; }
+    public CooldownManager getCooldownManager()          { return cooldownManager; }
+    public BuffManager getBuffManager()                  { return buffManager; }
 }

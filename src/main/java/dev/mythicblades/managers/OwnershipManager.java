@@ -2,7 +2,6 @@ package dev.mythicblades.managers;
 
 import dev.mythicblades.MythicBladesPlugin;
 import dev.mythicblades.SwordType;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -17,8 +16,8 @@ import java.util.UUID;
 public class OwnershipManager {
 
     private final MythicBladesPlugin plugin;
-    private final Map<String, UUID> swordOwners = new HashMap<>(); // swordId -> ownerUUID
-    private final Map<UUID, Map<String, ItemStack>> playerSwords = new HashMap<>(); // playerUUID -> swordId -> item
+    private final Map<String, UUID> swordOwners = new HashMap<>();
+    private final Map<UUID, Map<String, ItemStack>> playerSwords = new HashMap<>();
     private File dataFile;
     private FileConfiguration data;
 
@@ -27,13 +26,8 @@ public class OwnershipManager {
         loadData();
     }
 
-    public boolean isClaimed(SwordType type) {
-        return swordOwners.containsKey(type.getId());
-    }
-
-    public UUID getOwner(SwordType type) {
-        return swordOwners.get(type.getId());
-    }
+    public boolean isClaimed(SwordType type) { return swordOwners.containsKey(type.getId()); }
+    public UUID getOwner(SwordType type) { return swordOwners.get(type.getId()); }
 
     public boolean isOwnedBy(SwordType type, Player player) {
         UUID owner = swordOwners.get(type.getId());
@@ -57,37 +51,28 @@ public class OwnershipManager {
         saveData();
     }
 
-    // Called on player death — returns sword to their inventory on respawn
     public ItemStack getStoredSword(SwordType type) {
         UUID owner = swordOwners.get(type.getId());
         if (owner == null) return null;
         Map<String, ItemStack> swords = playerSwords.get(owner);
-        if (swords == null) return null;
-        return swords.get(type.getId());
+        return swords == null ? null : swords.get(type.getId());
     }
 
-    public Map<String, UUID> getAllOwners() {
-        return new HashMap<>(swordOwners);
-    }
+    public Map<String, UUID> getAllOwners() { return new HashMap<>(swordOwners); }
 
     public int countSwordsOwned(Player player) {
-        Map<String, ItemStack> swords = playerSwords.get(player.getUniqueId());
-        return swords == null ? 0 : swords.size();
+        Map<String, ItemStack> s = playerSwords.get(player.getUniqueId());
+        return s == null ? 0 : s.size();
     }
 
     public boolean ownsAllSeven(Player player) {
-        // Kagura no Tachi counts as 2 (replaces Enma + Ame no Habakiri)
         Map<String, ItemStack> swords = playerSwords.get(player.getUniqueId());
         if (swords == null) return false;
         int count = swords.size();
-        // If they have Kagura, it replaced Enma + Habakiri so count as 7
-        if (swords.containsKey(SwordType.KAGURA_NO_TACHI.getId())) {
-            count += 1; // Kagura counts as 2 entries effectively
-        }
+        if (swords.containsKey(SwordType.KAGURA_NO_TACHI.getId())) count += 1;
         return count >= 7;
     }
 
-    // Persistence
     private void loadData() {
         dataFile = new File(plugin.getDataFolder(), "ownership.yml");
         if (!dataFile.exists()) {
@@ -107,9 +92,8 @@ public class OwnershipManager {
     }
 
     public void saveData() {
-        for (Map.Entry<String, UUID> entry : swordOwners.entrySet()) {
-            data.set("owners." + entry.getKey(), entry.getValue().toString());
-        }
+        for (Map.Entry<String, UUID> e : swordOwners.entrySet())
+            data.set("owners." + e.getKey(), e.getValue().toString());
         try { data.save(dataFile); } catch (IOException e) { e.printStackTrace(); }
     }
 }

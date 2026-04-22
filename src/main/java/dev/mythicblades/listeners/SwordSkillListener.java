@@ -1,80 +1,99 @@
-package dev.mythicblades.listeners; // Fixed package to match listener folder
+package dev.mythicblades.listeners;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.LivingEntity;
+import dev.mythicblades.MythicBladesPlugin;
+import dev.mythicblades.SwordType;
+import dev.mythicblades.swords.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+public class SwordSkillListener implements Listener {
 
-public class SwordSkillListener { // Fixed class name to match file
+    private final MythicBladesPlugin plugin;
 
-    private static final Map<UUID, Boolean> resurrectionReady = new HashMap<>();
-    private static final Map<UUID, Boolean> sentinelsActive = new HashMap<>();
+    public SwordSkillListener(MythicBladesPlugin plugin) { this.plugin = plugin; }
 
-    public static void toggleSentinels(Player player) {
-        sentinelsActive.put(player.getUniqueId(), !sentinelsActive.getOrDefault(player.getUniqueId(), false));
-        player.sendMessage("Sentinels toggled!");
-    }
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR &&
+            event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
-    public static void tickSentinels(Player player) {
-        // Placeholder for sentinels logic
-    }
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        SwordType type = plugin.getSwordManager().getSwordType(item);
+        if (type == null) return;
 
-    public static boolean areSentinelsActive(UUID uuid) {
-        return sentinelsActive.getOrDefault(uuid, false);
-    }
+        event.setCancelled(true);
+        boolean shift = player.isSneaking();
 
-    public static void glacialMonolith(Player player) {
-        World world = player.getWorld();
-        Location base = player.getLocation();
-
-        // Updated to RESISTANCE
-        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 4));
-
-        for (int y = 0; y <= 3; y++) {
-            Location loc = base.clone().add(0, y, 0);
-            world.spawnParticle(Particle.BLOCK, loc, 10, 0.2, 0.2, 0.2, Material.ICE.createBlockData());
-        }
-
-        for (int angle = 0; angle < 360; angle += 30) {
-            Vector dir = new Vector(Math.cos(Math.toRadians(angle)), 0, Math.sin(Math.toRadians(angle)));
-            Location spikeLoc = base.clone().add(dir.multiply(10));
-            world.spawnParticle(Particle.BLOCK, spikeLoc, 5, 0.3, 0.3, 0.3, Material.ICE.createBlockData());
-        }
-
-        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("MythicBlades"), () -> {
-            for (double r = 1; r <= 20; r += 2) {
-                for (double a = 0; a < 360; a += 20) {
-                    double rad = Math.toRadians(a);
-                    Location loc = base.clone().add(Math.cos(rad) * r, 0, Math.sin(rad) * r);
-                    world.spawnParticle(Particle.BLOCK, loc, 3, 0.3, 0.3, 0.3, Material.ICE.createBlockData());
-                    world.spawnParticle(Particle.BLOCK, loc, 3, 0.3, 0.3, 0.3, Material.DIRT.createBlockData());
+        switch (type) {
+            case BLADE_OF_THAW -> {
+                if (shift) {
+                    BladeOfThawSkills.armResurrection(player.getUniqueId());
+                    player.sendMessage("§b❄ Absolute Zero armed. You will survive the next fatal hit.");
+                } else {
+                    BladeOfThawSkills.glacialMonolith(player, plugin);
                 }
             }
-        }, 60L);
+            case EXCALIBUR -> {
+                if (shift) ExcaliburSkills.excaliburUlt(player, plugin);
+                else       ExcaliburSkills.twinStrike(player, plugin);
+            }
+            case EA -> {
+                if (shift) EaSkills.enumaElish(player, plugin);
+                else       EaSkills.swordBarrage(player, plugin);
+            }
+            case MURASAME -> {
+                if (shift) MurasameSkills.berserkMode(player, plugin);
+                else       MurasameSkills.lethalPoisonActive(player, plugin);
+            }
+            case ENMA -> {
+                if (shift) EnmaSkills.hakaiSlash(player, plugin);
+            }
+            case AME_NO_HABAKIRI -> {
+                if (shift) HabakiriSkills.divineSeverance(player, plugin);
+                else       HabakiriSkills.heavenlyParry(player, plugin);
+            }
+            case NICHIRIN -> {
+                if (shift) NichirinSkills.hinokamiKagura(player, plugin);
+                else       NichirinSkills.flameHashira(player, plugin);
+            }
+            case SENBONZAKURA -> {
+                if (shift) SenbonzakuraSkills.kageyoshi(player, plugin);
+                else       SenbonzakuraSkills.scatter(player, plugin);
+            }
+            case KAGURA_NO_TACHI -> {
+                if (shift) KaguraSkills.tenchiKaimei(player, plugin);
+                else       KaguraSkills.dualResonance(player, plugin);
+            }
+        }
     }
 
-    public static void applyFrostPassive(LivingEntity target, Player owner) {
-        // Updated to SLOWNESS
-        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1));
-    }
+    // F key (swap hands) — Skill 2
+    @EventHandler
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        SwordType type = plugin.getSwordManager().getSwordType(item);
+        if (type == null) return;
 
-    public static void triggerResurrection(Player player) {
-        if (!resurrectionReady.getOrDefault(player.getUniqueId(), false)) return;
-        resurrectionReady.put(player.getUniqueId(), false);
-        player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-        player.setFoodLevel(20);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1f, 1f);
+        event.setCancelled(true);
+
+        switch (type) {
+            case BLADE_OF_THAW   -> BladeOfThawSkills.toggleSentinels(player, plugin);
+            case EXCALIBUR       -> ExcaliburSkills.holyPulse(player, plugin);
+            case EA              -> EaSkills.voidSlash(player, plugin);
+            case ENMA            -> EnmaSkills.drainInfo(player, plugin);
+            case AME_NO_HABAKIRI -> HabakiriSkills.godSlayerInfo(player, plugin);
+            case NICHIRIN        -> NichirinSkills.flameSweep(player, plugin);
+            case SENBONZAKURA   -> SenbonzakuraSkills.petalPrison(player, plugin);
+            // Murasame and Kagura have no F-key skill
+        }
     }
 }
