@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 public class FusionListener implements Listener {
 
@@ -27,5 +28,13 @@ public class FusionListener implements Listener {
         event.setCancelled(true);
         player.setHealth(1.0);
         BladeOfThawSkills.triggerResurrection(player, plugin);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (player.isInvulnerable()) {
+            player.setInvulnerable(false);
+        }
     }
 }
