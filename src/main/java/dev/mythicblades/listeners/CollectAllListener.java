@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class CollectAllListener implements Listener {
@@ -15,8 +15,8 @@ public class CollectAllListener implements Listener {
     public CollectAllListener(MythicBladesPlugin plugin) { this.plugin = plugin; }
 
     @EventHandler
-    public void onPickup(PlayerPickupItemEvent event) {
-        Player player = event.getPlayer();
+    public void onPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
         ItemStack item = event.getItem().getItemStack();
         if (!plugin.getSwordManager().isMythicSword(item)) return;
 

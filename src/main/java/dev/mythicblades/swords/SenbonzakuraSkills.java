@@ -15,7 +15,6 @@ import java.util.UUID;
 
 public class SenbonzakuraSkills {
 
-    // ── Passive — Petal Bleed ─────────────────────────────────────────────────
     public static void applyPetalBleed(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         double bleedDmg  = plugin.getConfigManager().skill("senbonzakura", "passive", "bleed_damage", 3.0);
         int ticks        = plugin.getConfigManager().skillInt("senbonzakura", "passive", "bleed_ticks", 8);
@@ -27,7 +26,6 @@ public class SenbonzakuraSkills {
             @Override public void run() {
                 if (!target.isValid() || target.isDead() || t >= ticks) { cancel(); return; }
                 target.damage(bleedDmg, attacker);
-                // Orbiting petal orbit effect
                 Location l = target.getLocation().add(0, 1, 0);
                 double angle = System.currentTimeMillis() / 400.0;
                 for (int i = 0; i < 4; i++) {
@@ -40,8 +38,6 @@ public class SenbonzakuraSkills {
         }.runTaskTimer(plugin, (long)startDelay, (long)interval);
     }
 
-    // ── Scatter (RMB) ─────────────────────────────────────────────────────────
-    // Charge -> detonate thousand-blade storm around player
     public static void scatter(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "scatter")) {
@@ -63,7 +59,6 @@ public class SenbonzakuraSkills {
         player.sendMessage("§d✦ Scatter — a thousand blades.");
         world.playSound(center, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1f, 0.6f);
 
-        // Charge: petals gather inward
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {
@@ -82,7 +77,6 @@ public class SenbonzakuraSkills {
     private static void detonateScatter(Player player, Location center, World world,
                                          double dmg, double radius, double height,
                                          int slwDur, int slwAmp, MythicBladesPlugin plugin) {
-        // Burst explosion of petals
         world.spawnParticle(Particle.CHERRY_LEAVES, center, 80, 5, 2, 5, 0.3);
         world.spawnParticle(Particle.ENCHANT,       center, 30, 4, 2, 4, 0.8);
         world.spawnParticle(Particle.END_ROD,       center, 20, 3, 1, 3, 0.15);
@@ -97,8 +91,6 @@ public class SenbonzakuraSkills {
         }
     }
 
-    // ── Petal Prison (F) ──────────────────────────────────────────────────────
-    // Instant cage — heavy slowness, targets pinned briefly
     public static void petalPrison(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "petal_prison")) {
@@ -119,7 +111,6 @@ public class SenbonzakuraSkills {
         player.sendMessage("§d✦ Petal Prison");
         world.playSound(center, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 1f, 0.7f);
 
-        // Rising petal cage columns
         for (int i = 0; i < 8; i++) {
             double a = Math.toRadians(45 * i);
             Location col = center.clone().add(Math.cos(a) * radius, 0, Math.sin(a) * radius);
@@ -141,8 +132,6 @@ public class SenbonzakuraSkills {
         }
     }
 
-    // ── Kageyoshi (Shift+RMB) ─────────────────────────────────────────────────
-    // Blossom domain — sustained rotating blade ring, continuous damage + pull
     public static void kageyoshi(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "kageyoshi")) {
@@ -173,7 +162,6 @@ public class SenbonzakuraSkills {
                 p.sendMessage(plugin.getConfigManager().getMessage("senbonzakura_ult_broadcast", "{player}", player.getName()));
         }
 
-        // Initial bloom burst
         world.spawnParticle(Particle.CHERRY_LEAVES, center, 50, 3, 2, 3, 0.3);
 
         new BukkitRunnable() {
@@ -183,12 +171,10 @@ public class SenbonzakuraSkills {
                 if (!player.isOnline() || tick >= duration) { cancel(); return; }
                 angle += 0.25;
 
-                // Rotating blade ring visual
                 for (int i = 0; i < bladeCount; i++) {
                     double a = angle + (i * Math.PI * 2 / bladeCount);
                     Location blade = center.clone().add(Math.cos(a) * radius, 1, Math.sin(a) * radius);
                     world.spawnParticle(Particle.CHERRY_LEAVES, blade, 1, 0, 0, 0, 0);
-                    // Inner petal scatter
                     if (tick % 3 == 0)
                         world.spawnParticle(Particle.ENCHANT, blade, 1, 0.1, 0.2, 0.1, 0.05);
                 }
@@ -197,7 +183,6 @@ public class SenbonzakuraSkills {
                     for (Entity e : world.getNearbyEntities(center, radius, height, radius)) {
                         if (!(e instanceof LivingEntity le) || e == player) continue;
                         le.damage(dmg, player);
-                        // Pull inward slightly
                         Vector pull = center.toVector().subtract(e.getLocation().toVector())
                             .normalize().multiply(Math.abs(kbIn)).setY(kbY);
                         le.setVelocity(pull);

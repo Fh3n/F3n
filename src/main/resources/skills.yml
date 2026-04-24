@@ -1,24 +1,12 @@
 # ============================================================
 #  MythicBlades — Skills Configuration
 #  Reload in-game with /mb reload (no restart needed)
-#
-#  damage        : base damage dealt
-#  radius        : AoE radius in blocks
-#  range         : projectile/slash range in blocks
-#  width         : slash width in blocks
-#  cooldown      : seconds
-#  duration      : seconds (for channelled abilities)
-#  multiplier    : damage multiplier for special conditions
-#
-#  Particle names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
-#  Set any particle to NONE to disable it.
 # ============================================================
 
-# ── BLADE OF THAW (Singularity) ──────────────────────────────
 blade_of_thaw:
   passive:
-    slow_amplifier: 1          # Slowness level on hit (0 = Slowness I)
-    slow_duration: 40          # ticks
+    slow_amplifier: 1
+    slow_duration: 40
   glacial_monolith:
     damage: 45.0
     radius: 6.0
@@ -36,7 +24,7 @@ blade_of_thaw:
     count: 6
   absolute_zero:
     cooldown_minutes: 10
-    meltdown_duration: 15      # seconds
+    meltdown_duration: 15
   particles:
     aura_primary: SNOWFLAKE
     aura_secondary: END_ROD
@@ -49,14 +37,13 @@ blade_of_thaw:
     sentinel_orbit: END_ROD
     projectile: SNOWFLAKE
 
-# ── EXCALIBUR (Mythic) ───────────────────────────────────────
 excalibur:
   passive:
     bonus_damage: 4.0
-    weakness_duration: 30      # ticks
+    weakness_duration: 30
     weakness_amplifier: 0
   twin_strike:
-    damage: 14.0               # per hit, two hits
+    damage: 14.0
     arc_steps: 14
     step_size: 0.7
     hitbox: 1.3
@@ -81,7 +68,7 @@ excalibur:
     damage_per_tick: 20.0
     radius: 12.0
     height: 110.0
-    duration: 7               # seconds
+    duration: 7
     lift_velocity: 1.4
     slowness_amplifier: 3
     slowness_duration: 100
@@ -98,7 +85,6 @@ excalibur:
     pulse_ring: END_ROD
     ult_ring: END_ROD
 
-# ── EA (Mythic) ──────────────────────────────────────────────
 ea:
   passive:
     bonus_damage: 3.0
@@ -108,7 +94,7 @@ ea:
   sword_barrage:
     damage: 22.0
     count: 6
-    delay_per_sword: 4        # ticks
+    delay_per_sword: 4
     step_size: 0.9
     max_steps: 40
     hitbox: 1.2
@@ -138,7 +124,6 @@ ea:
     barrage_trail: CRIT
     beam: DRAGON_BREATH
 
-# ── MURASAME (Mythic) ────────────────────────────────────────
 murasame:
   passive:
     wither_duration: 80
@@ -156,13 +141,13 @@ murasame:
     curse_stacks_applied: 3
     cooldown: 10
   berserk_mode:
-    duration: 15              # seconds
+    duration: 15
     aura_radius: 4.0
     aura_damage_base: 5.0
-    aura_tick_interval: 15    # ticks between aura pulses
+    aura_tick_interval: 15
     strength_amplifier: 3
     speed_amplifier: 2
-    aftermath_weakness_duration: 200   # ticks
+    aftermath_weakness_duration: 200
     aftermath_weakness_amplifier: 1
     aftermath_slowness_duration: 200
     aftermath_slowness_amplifier: 1
@@ -177,7 +162,6 @@ murasame:
     berserk_primary: DAMAGE_INDICATOR
     berserk_secondary: FLAME
 
-# ── ENMA (Mythic) ────────────────────────────────────────────
 enma:
   passive:
     wither_duration: 60
@@ -187,9 +171,9 @@ enma:
     curse_echo_delay: 10
     particle_chance: 0.4
   wither_self:
-    amplifier: 1              # wither level when holding Enma without Habakiri
-    duration: 40              # ticks, refreshed by aura ticker
-  paired_regen:               # bonuses when holding both Enma + Habakiri
+    amplifier: 1
+    duration: 40
+  paired_regen:
     regen_amplifier: 1
     strength_amplifier: 2
   hakai_slash:
@@ -216,15 +200,14 @@ enma:
     slash_primary_count: 5
     slash_secondary_count: 2
 
-# ── AME NO HABAKIRI (Mythic) ─────────────────────────────────
 ame_no_habakiri:
   passive:
     bonus_damage: 3.0
     weakness_duration: 40
     weakness_amplifier: 0
   god_slayer:
-    multiplier: 3.5           # multiplier vs Ender Dragon / Wither / Elder Guardian / Warden
-    base_multiplier: 1.4      # always-on multiplier vs all targets
+    multiplier: 3.5
+    base_multiplier: 1.4
   heavenly_parry:
     damage: 20.0
     radius: 6.0
@@ -252,7 +235,6 @@ ame_no_habakiri:
     parry_ring: END_ROD
     severance: SWEEP_ATTACK
 
-# ── NICHIRIN (Legendary) ─────────────────────────────────────
 nichirin:
   passive:
     fire_ticks: 80
@@ -282,8 +264,8 @@ nichirin:
     finisher_damage: 18.0
     finisher_radius: 6.0
     finisher_fire_ticks: 120
-    phase_interval: 6         # ticks between phases
-    invuln_windup: 15         # ticks of windup before sequence
+    phase_interval: 6
+    invuln_windup: 15
     cooldown: 45
   particles:
     aura_primary: FLAME
@@ -295,12 +277,11 @@ nichirin:
     spiral: FLAME
     diagonal: FLAME
 
-# ── SENBONZAKURA (Legendary) ─────────────────────────────────
 senbonzakura:
   passive:
     bleed_damage: 3.0
     bleed_ticks: 8
-    bleed_interval: 10        # ticks between bleed hits
+    bleed_interval: 10
     bleed_start_delay: 5
   scatter:
     damage: 12.0
@@ -323,8 +304,8 @@ senbonzakura:
     damage_per_pulse: 6.0
     radius: 12.0
     height: 4.0
-    duration: 10              # seconds
-    pulse_interval: 8         # ticks between damage pulses
+    duration: 10
+    pulse_interval: 8
     knockback_in: -0.4
     knockback_y: 0.2
     slowness_duration: 40
@@ -344,7 +325,6 @@ senbonzakura:
     kageyoshi_blade: CHERRY_LEAVES
     kageyoshi_burst: CHERRY_LEAVES
 
-# ── KAGURA NO TACHI (Singularity) ────────────────────────────
 kagura_no_tachi:
   passive:
     wither_chance: 0.35
@@ -354,7 +334,7 @@ kagura_no_tachi:
     slowness_duration: 30
     slowness_amplifier: 1
     bonus_damage: 2.0
-  self_buffs:                 # passive buffs while holding Kagura
+  self_buffs:
     regen_amplifier: 2
     strength_amplifier: 3
     resistance_amplifier: 1

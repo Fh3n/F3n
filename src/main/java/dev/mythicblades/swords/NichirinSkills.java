@@ -10,14 +10,11 @@ import org.bukkit.util.Vector;
 
 public class NichirinSkills {
 
-    // ── Passive ───────────────────────────────────────────────────────────────
-    // Fire + regen-null (Wither removes regen effectively)
     public static void applyBurnPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         int fireTicks = plugin.getConfigManager().skillInt("nichirin", "passive", "fire_ticks", 80);
         double bonus  = plugin.getConfigManager().skill("nichirin", "passive", "bonus_damage", 2.0);
         target.setFireTicks(fireTicks);
         target.damage(bonus, attacker);
-        // Remove any regen the target has
         target.removePotionEffect(PotionEffectType.REGENERATION);
     }
 
@@ -27,8 +24,6 @@ public class NichirinSkills {
             player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 1, 0, 0, 0, 0);
     }
 
-    // ── Flame Hashira (RMB) ───────────────────────────────────────────────────
-    // Teleport-dash forward, igniting everything in the path
     public static void flameHashira(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "flame_hashira")) {
@@ -64,8 +59,6 @@ public class NichirinSkills {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Flame Sweep (F) ───────────────────────────────────────────────────────
-    // Progressive arc swing — not instant circle, feels like an actual sweep
     public static void flameSweep(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "flame_sweep")) {
@@ -108,8 +101,6 @@ public class NichirinSkills {
         }.runTaskTimer(plugin, 0L, 2L);
     }
 
-    // ── Hinokami Kagura (Shift+RMB) ───────────────────────────────────────────
-    // Invuln windup -> X-slash sequence -> solar finisher burst
     public static void hinokamiKagura(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "hinokami_kagura")) {
@@ -134,7 +125,6 @@ public class NichirinSkills {
         world.playSound(origin, Sound.ENTITY_BLAZE_SHOOT, 0.6f, 0.6f);
         player.setInvulnerable(true);
 
-        // Windup breathing aura
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {

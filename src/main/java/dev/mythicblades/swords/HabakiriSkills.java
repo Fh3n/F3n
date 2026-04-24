@@ -15,7 +15,6 @@ import java.util.UUID;
 
 public class HabakiriSkills {
 
-    // ── Passive ───────────────────────────────────────────────────────────────
     public static void applyWaterPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         double bonus = plugin.getConfigManager().skill("ame_no_habakiri", "passive", "bonus_damage", 3.0);
         int wkDur    = plugin.getConfigManager().skillInt("ame_no_habakiri", "passive", "weakness_duration", 40);
@@ -25,14 +24,11 @@ public class HabakiriSkills {
             target.getLocation().add(0, 1, 0), 4, 0.2, 0.2, 0.2, 0.02);
     }
 
-    // God-slayer multiplier applied in SwordPassiveListener
     public static void godSlayerInfo(Player player, MythicBladesPlugin plugin) {
         double mult = plugin.getConfigManager().swordVal("ame_no_habakiri", "god_slayer.multiplier", 3.5);
         player.sendMessage("§bGod-Slayer (Passive): §f" + mult + "x §bdamage vs Ender Dragon, Wither, Elder Guardian, Warden.");
     }
 
-    // ── Heavenly Parry (RMB) ──────────────────────────────────────────────────
-    // Leap straight up; on landing, burst shockwave damages all nearby
     public static void heavenlyParry(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "heavenly_parry")) {
@@ -41,21 +37,18 @@ public class HabakiriSkills {
         }
         cd.set(player.getUniqueId(), "heavenly_parry", plugin.getConfigManager().skillCooldownMs("ame_no_habakiri", "heavenly_parry"));
 
-        double dmg  = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "damage", 20.0);
-        double r    = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "radius", 6.0);
+        double dmg     = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "damage", 20.0);
+        double r       = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "radius", 6.0);
         double launchY = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "launch_velocity_y", 1.5);
-        double kbY  = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "knockback_y", 0.5);
+        double kbY     = plugin.getConfigManager().skill("ame_no_habakiri", "heavenly_parry", "knockback_y", 0.5);
 
         World world = player.getWorld();
 
         player.sendMessage("§f✦ Heavenly Parry!");
         world.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 2f);
 
-        // Brief invuln during ascent
         player.setInvulnerable(true);
         player.setVelocity(new Vector(0, launchY, 0));
-
-        // Ring of holy particles around launch point
         ParticleUtils.ring(world, Particle.END_ROD, player.getLocation().add(0, 0.5, 0), r * 0.5, 16);
 
         new BukkitRunnable() {
@@ -63,17 +56,14 @@ public class HabakiriSkills {
             @Override public void run() {
                 if (!player.isOnline()) { player.setInvulnerable(false); cancel(); return; }
                 wait++;
-                // Wait until player starts falling and hits ground (min 5 ticks airtime)
                 if (wait < 5) return;
                 if (player.isOnGround()) {
                     player.setInvulnerable(false);
                     Location landing = player.getLocation().add(0, 0.5, 0);
-
                     world.playSound(landing, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.5f);
                     world.spawnParticle(Particle.SWEEP_ATTACK, landing, 15, 1, 0.5, 1, 0.1);
                     ParticleUtils.ring(world, Particle.END_ROD, landing, r, 24);
                     world.spawnParticle(Particle.ENCHANT, landing, 20, r * 0.4, 0.3, r * 0.4, 0.5);
-
                     for (Entity e : world.getNearbyEntities(landing, r, 2, r)) {
                         if (!(e instanceof LivingEntity le) || e == player) continue;
                         le.damage(dmg, player);
@@ -85,8 +75,6 @@ public class HabakiriSkills {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Divine Severance (Shift+RMB) ──────────────────────────────────────────
-    // Long holy beam — clean directional, bypasses armor feel
     public static void divineSeverance(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "divine_severance")) {
@@ -118,7 +106,6 @@ public class HabakiriSkills {
             Location cur = start.clone();
             @Override public void run() {
                 if (!player.isOnline() || step > range) {
-                    // Final strike at end
                     world.strikeLightningEffect(cur);
                     world.playSound(cur, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.2f);
                     cancel();

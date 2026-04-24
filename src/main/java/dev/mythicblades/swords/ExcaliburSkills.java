@@ -19,7 +19,6 @@ public class ExcaliburSkills {
 
     private static final Map<UUID, Boolean> twinLock = new HashMap<>();
 
-    // ── Passive ───────────────────────────────────────────────────────────────
     public static void applyLightPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         double bonus = plugin.getConfigManager().skill("excalibur", "passive", "bonus_damage", 4.0);
         int wkDur    = plugin.getConfigManager().skillInt("excalibur", "passive", "weakness_duration", 30);
@@ -29,8 +28,6 @@ public class ExcaliburSkills {
             target.getLocation().add(0, 1, 0), 5, 0.2, 0.3, 0.2, 0.03);
     }
 
-    // ── Twin Strike (RMB) ─────────────────────────────────────────────────────
-    // Double forward arc sweep with brief delay — feels decisive and powerful
     public static void twinStrike(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "twin_strike")) {
@@ -42,10 +39,10 @@ public class ExcaliburSkills {
 
         cd.set(player.getUniqueId(), "twin_strike", plugin.getConfigManager().skillCooldownMs("excalibur", "twin_strike"));
 
-        double dmg     = plugin.getConfigManager().skill("excalibur", "twin_strike", "damage", 14.0);
-        int    steps   = plugin.getConfigManager().skillInt("excalibur", "twin_strike", "arc_steps", 14);
-        double stepSz  = plugin.getConfigManager().skill("excalibur", "twin_strike", "step_size", 0.7);
-        double hitbox  = plugin.getConfigManager().skill("excalibur", "twin_strike", "hitbox", 1.3);
+        double dmg    = plugin.getConfigManager().skill("excalibur", "twin_strike", "damage", 14.0);
+        int steps     = plugin.getConfigManager().skillInt("excalibur", "twin_strike", "arc_steps", 14);
+        double stepSz = plugin.getConfigManager().skill("excalibur", "twin_strike", "step_size", 0.7);
+        double hitbox = plugin.getConfigManager().skill("excalibur", "twin_strike", "hitbox", 1.3);
 
         World world = player.getWorld();
         Location loc = player.getLocation().add(0, 1, 0);
@@ -90,8 +87,6 @@ public class ExcaliburSkills {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Holy Pulse (F) ────────────────────────────────────────────────────────
-    // Radiant shockwave — expanding ring, blinds + launches
     public static void holyPulse(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "holy_pulse")) {
@@ -111,7 +106,6 @@ public class ExcaliburSkills {
         player.sendMessage("§e✦ Holy Pulse!");
         world.playSound(loc, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 1.8f);
 
-        // Visual expanding ring
         new BukkitRunnable() {
             double r = 0.5;
             @Override public void run() {
@@ -121,7 +115,6 @@ public class ExcaliburSkills {
             }
         }.runTaskTimer(plugin, 0L, 2L);
 
-        // Damage all in radius
         for (Entity e : world.getNearbyEntities(loc, radius, 5, radius)) {
             if (!(e instanceof LivingEntity le) || e == player) continue;
             le.damage(dmg, player);
@@ -136,8 +129,6 @@ public class ExcaliburSkills {
             plugin.getConfigManager().skillInt("excalibur", "holy_pulse", "strength_amplifier", 1)));
     }
 
-    // ── Heaven's Descent (Shift+RMB) ──────────────────────────────────────────
-    // 110-block sky pillar, invulnerable, rains lightning + continuous damage
     public static void excaliburUlt(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "excalibur_ult")) {
@@ -149,7 +140,7 @@ public class ExcaliburSkills {
         double dmgPerTick = plugin.getConfigManager().skill("excalibur", "excalibur_ult", "damage_per_tick", 20.0);
         double radius     = plugin.getConfigManager().skill("excalibur", "excalibur_ult", "radius", 12.0);
         double height     = plugin.getConfigManager().skill("excalibur", "excalibur_ult", "height", 110.0);
-        int    duration   = plugin.getConfigManager().skillInt("excalibur", "excalibur_ult", "duration", 7) * 20;
+        int duration      = plugin.getConfigManager().skillInt("excalibur", "excalibur_ult", "duration", 7) * 20;
 
         World world = player.getWorld();
         Location target = player.getTargetBlock(null, 50).getLocation().add(0.5, 0, 0.5);
@@ -158,7 +149,6 @@ public class ExcaliburSkills {
         world.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 0.6f);
         player.setInvulnerable(true);
 
-        // Broadcast
         for (Player p : plugin.getServer().getOnlinePlayers()) {
             if (!p.equals(player))
                 p.sendMessage(plugin.getConfigManager().getMessage("excalibur_ult_broadcast", "{player}", player.getName()));
@@ -174,18 +164,13 @@ public class ExcaliburSkills {
                     cancel();
                     return;
                 }
-
-                // Pillar every 4 ticks
                 if (tick % 4 == 0) spawnPillar(target, world, radius, height);
-
-                // Damage all in column
                 for (Entity e : world.getNearbyEntities(target, radius, height, radius)) {
                     if (!(e instanceof LivingEntity le) || e == player) continue;
                     le.damage(dmgPerTick, player);
                     le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 3));
                     if (tick % 8 == 0) le.setVelocity(new Vector(0, 1.4, 0));
                 }
-
                 tick++;
             }
         }.runTaskTimer(plugin, 0L, 1L);

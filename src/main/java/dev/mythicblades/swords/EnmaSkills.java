@@ -15,8 +15,6 @@ import java.util.UUID;
 
 public class EnmaSkills {
 
-    // ── Passive ───────────────────────────────────────────────────────────────
-    // Curse echo — delayed damage pulses after each hit
     public static void applyEnmaPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         int witDur  = plugin.getConfigManager().skillInt("enma", "passive", "wither_duration", 60);
         int witAmp  = plugin.getConfigManager().skillInt("enma", "passive", "wither_amplifier", 1);
@@ -41,15 +39,12 @@ public class EnmaSkills {
         }
     }
 
-    // ── Drain Info (F) ────────────────────────────────────────────────────────
     public static void drainInfo(Player player, MythicBladesPlugin plugin) {
         player.sendMessage("§6Enma drains life force with every strike.");
         player.sendMessage("§7Hold without Ame no Habakiri: §cWither II passive.");
         player.sendMessage("§7Hold both: §aRegen II + Strength III.");
     }
 
-    // ── Hakai Slash (Shift+RMB) ───────────────────────────────────────────────
-    // Long-range chaos cleave — wide, fire + curse on all hit, fracture afterimage
     public static void hakaiSlash(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "hakai_slash")) {
@@ -86,7 +81,6 @@ public class EnmaSkills {
 
             @Override public void run() {
                 if (step >= steps) {
-                    // Fracture afterimage at endpoint
                     new BukkitRunnable() {
                         double r = 1;
                         @Override public void run() {
@@ -102,9 +96,7 @@ public class EnmaSkills {
                 cur.add(dir.clone().multiply(stepSz));
 
                 if (step % 2 == 0) {
-                    // Main slash particles
                     world.spawnParticle(Particle.FLAME, cur, 4, 0.1, 0.3, 0.1, 0.04);
-                    // Edge echo slashes
                     Location left  = cur.clone().add(perpF.clone().multiply(-width * 0.55));
                     Location right = cur.clone().add(perpF.clone().multiply(width * 0.55));
                     world.spawnParticle(Particle.SMOKE, left,  1, 0, 0, 0, 0);

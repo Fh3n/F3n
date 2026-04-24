@@ -16,8 +16,15 @@ public class FusionListener implements Listener {
     public FusionListener(MythicBladesPlugin plugin) { this.plugin = plugin; }
 
     @EventHandler
-    public void onFatalDamage(EntityDamageEvent event) {
+    public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+
+        // Cancel all damage during resurrection sequence (invuln flag covers most, this catches fall damage)
+        if (BladeOfThawSkills.isInResurrection(player.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (player.getHealth() - event.getFinalDamage() > 0) return;
 
         var item = player.getInventory().getItemInMainHand();

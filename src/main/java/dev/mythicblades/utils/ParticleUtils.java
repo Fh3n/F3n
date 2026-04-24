@@ -43,7 +43,6 @@ public class ParticleUtils {
         }
     }
 
-    // Sword-specific helpers
     public static void frostAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
         spawn(p.getWorld(), Particle.SNOWFLAKE, l, 4, 0.3, 0.5, 0.3, 0.01);

@@ -15,7 +15,6 @@ import java.util.UUID;
 
 public class EaSkills {
 
-    // ── Passive ───────────────────────────────────────────────────────────────
     public static void applyVoidPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         double bonus = plugin.getConfigManager().skill("ea", "passive", "bonus_damage", 3.0);
         int witDur   = plugin.getConfigManager().skillInt("ea", "passive", "wither_duration", 40);
@@ -27,8 +26,6 @@ public class EaSkills {
         }
     }
 
-    // ── Sword Barrage (RMB) ───────────────────────────────────────────────────
-    // Launch phantom blades in rapid succession at nearby enemies
     public static void swordBarrage(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "sword_barrage")) {
@@ -50,7 +47,6 @@ public class EaSkills {
         world.playSound(origin, Sound.ENTITY_WITHER_SHOOT, 0.6f, 0.8f);
 
         for (int i = 0; i < count; i++) {
-            // Slight spread per blade
             double spreadY = (Math.random() - 0.5) * 0.3;
             double spreadH = (Math.random() - 0.5) * 0.3;
             Vector bladeDir = dir.clone().add(new Vector(spreadH, spreadY, spreadH)).normalize();
@@ -89,8 +85,6 @@ public class EaSkills {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Void Slash (F) ────────────────────────────────────────────────────────
-    // Wide rupture wave — spatial tear aesthetic, lifts enemies
     public static void voidSlash(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "void_slash")) {
@@ -112,7 +106,6 @@ public class EaSkills {
         world.playSound(start, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.6f, 0.5f);
         player.sendMessage("§c✦ Void Slash!");
 
-        // Brief charge visual
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {
@@ -143,14 +136,12 @@ public class EaSkills {
                 if (step > range) { cancel(); return; }
                 cur.add(dir.clone().multiply(0.7));
 
-                // Draw wide slash cross-section
                 for (double w = -width / 2; w <= width / 2; w += 2.0) {
                     for (double h = -1; h <= 3; h += 2) {
                         Location p = cur.clone().add(right.clone().multiply(w)).add(0, h, 0);
                         if (step % 2 == 0) world.spawnParticle(Particle.PORTAL, p, 1, 0, 0, 0, 0.05);
                     }
                 }
-                // Center dark smoke tear
                 if (step % 3 == 0)
                     world.spawnParticle(Particle.DRAGON_BREATH, cur, 2, 0.2, 0.5, 0.2, 0.02);
 
@@ -164,8 +155,6 @@ public class EaSkills {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Enuma Elish (Shift+RMB) ───────────────────────────────────────────────
-    // Void pillar descends from sky, invulnerable, massive destruction
     public static void enumaElish(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "enuma_elish")) {
@@ -192,7 +181,6 @@ public class EaSkills {
                 p.sendMessage(plugin.getConfigManager().getMessage("ea_ult_broadcast", "{player}", player.getName()));
         }
 
-        // Sky charge buildup
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {
@@ -221,7 +209,6 @@ public class EaSkills {
             Location cur = center.clone().add(0, skyHeight, 0);
             @Override public void run() {
                 if (step > steps) {
-                    // Final impact
                     world.spawnParticle(Particle.EXPLOSION, center, 3, 1, 0.5, 1, 0);
                     world.spawnParticle(Particle.DRAGON_BREATH, center, 30, 3, 1, 3, 0.1);
                     world.strikeLightningEffect(center);

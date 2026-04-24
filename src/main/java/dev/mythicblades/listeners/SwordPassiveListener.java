@@ -99,7 +99,6 @@ public class SwordPassiveListener implements Listener {
             case KAGURA_NO_TACHI -> KaguraSkills.applyKaguraPassive(target, player, plugin);
         }
 
-        // God-slayer — Habakiri and Kagura
         if (type == SwordType.AME_NO_HABAKIRI || type == SwordType.KAGURA_NO_TACHI) {
             applyGodSlayer(event, target, plugin);
         }

@@ -26,7 +26,6 @@ public class SwordCraftListener implements Listener {
     }
 
     private void registerRecipes() {
-        // Legendary
         registerRecipe(SwordType.NICHIRIN, "nichirin",
             "NWN", "NBN", "NEN",
             'N', Material.NETHER_STAR, 'W', Material.WITHER_ROSE,
@@ -37,7 +36,6 @@ public class SwordCraftListener implements Listener {
             'P', Material.PINK_PETALS, 'G', Material.GOLD_INGOT,
             'A', Material.AMETHYST_SHARD, 'D', Material.DIAMOND_SWORD);
 
-        // Mythic
         registerRecipe(SwordType.MURASAME, "murasame",
             "SDS", "DND", "SDS",
             'S', Material.DRAGON_BREATH, 'D', Material.NETHERITE_INGOT,
@@ -62,8 +60,6 @@ public class SwordCraftListener implements Listener {
             "ANA", "NSN", "ANA",
             'A', Material.ANCIENT_DEBRIS, 'N', Material.NETHER_STAR,
             'S', Material.NETHERITE_SWORD);
-
-        // Blade of Thaw — not craftable, admin-given only
     }
 
     private void registerRecipe(SwordType type, String keyName,

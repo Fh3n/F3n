@@ -75,7 +75,6 @@ public class SwordSkillListener implements Listener {
         }
     }
 
-    // F key (swap hands) — Skill 2
     @EventHandler
     public void onSwapHands(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
@@ -92,8 +91,7 @@ public class SwordSkillListener implements Listener {
             case ENMA            -> EnmaSkills.drainInfo(player, plugin);
             case AME_NO_HABAKIRI -> HabakiriSkills.godSlayerInfo(player, plugin);
             case NICHIRIN        -> NichirinSkills.flameSweep(player, plugin);
-            case SENBONZAKURA   -> SenbonzakuraSkills.petalPrison(player, plugin);
-            // Murasame and Kagura have no F-key skill
+            case SENBONZAKURA    -> SenbonzakuraSkills.petalPrison(player, plugin);
         }
     }
 }

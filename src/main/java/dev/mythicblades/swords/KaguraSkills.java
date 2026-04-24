@@ -10,13 +10,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 public class KaguraSkills {
 
-    // ── Passive ───────────────────────────────────────────────────────────────
-    // Volatile duality — 35% wither+fire, 65% slowness; always bonus damage
     public static void applyKaguraPassive(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         double chance  = plugin.getConfigManager().skill("kagura_no_tachi", "passive", "wither_chance", 0.35);
         int witDur     = plugin.getConfigManager().skillInt("kagura_no_tachi", "passive", "wither_duration", 40);
@@ -29,7 +28,6 @@ public class KaguraSkills {
         if (Math.random() < chance) {
             target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, witAmp));
             target.setFireTicks(fireTicks);
-            // Duality hit effect — flame + holy
             ParticleUtils.spawn(target.getWorld(), Particle.FLAME,   target.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.03);
             ParticleUtils.spawn(target.getWorld(), Particle.END_ROD, target.getLocation().add(0, 1, 0), 2, 0.15, 0.15, 0.15, 0.02);
         } else {
@@ -38,8 +36,6 @@ public class KaguraSkills {
         target.damage(bonusDmg, attacker);
     }
 
-    // ── Dual Resonance (RMB) ──────────────────────────────────────────────────
-    // Twin diverging sweeps (fire left, holy right) converging on a forward drill point
     public static void dualResonance(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "dual_resonance")) {
@@ -62,12 +58,9 @@ public class KaguraSkills {
         player.sendMessage("§5✦ Dual Resonance");
         world.playSound(start, Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.5f);
 
-        // Fire sweep (left) — FLAME particles
         runSweep(world, start.clone(), dir, player, true, dmg, steps, stepSz, hbox, Particle.FLAME, plugin);
-        // Holy sweep (right) — END_ROD particles
         runSweep(world, start.clone(), dir, player, false, dmg, steps, stepSz, hbox, Particle.END_ROD, plugin);
 
-        // Drill convergence visual at center
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {
@@ -105,9 +98,6 @@ public class KaguraSkills {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    // ── Tenchi Kaimei (Shift+RMB) ─────────────────────────────────────────────
-    // Heaven and hell descend simultaneously — fire erupts below, holy crashes above
-    // Only Singularity rival to Blade of Thaw's Absolute Zero
     public static void tenchiKaimei(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "tenchi_kaimei")) {
@@ -116,66 +106,86 @@ public class KaguraSkills {
         }
         cd.set(player.getUniqueId(), "tenchi_kaimei", plugin.getConfigManager().skillCooldownMs("kagura_no_tachi", "tenchi_kaimei"));
 
-        double dmg     = plugin.getConfigManager().skill("kagura_no_tachi", "tenchi_kaimei", "damage", 35.0);
-        double radius  = plugin.getConfigManager().skill("kagura_no_tachi", "tenchi_kaimei", "radius", 18.0);
-        double height  = plugin.getConfigManager().skill("kagura_no_tachi", "tenchi_kaimei", "height", 50.0);
-        int windup     = plugin.getConfigManager().skillInt("kagura_no_tachi", "tenchi_kaimei", "windup_ticks", 35);
-        double descent = plugin.getConfigManager().skill("kagura_no_tachi", "tenchi_kaimei", "descent_step", 1.4);
-        boolean invuln = plugin.getConfigManager().skillBoolean("kagura_no_tachi", "tenchi_kaimei", "invuln", true);
+        double dmg = plugin.getConfigManager().skill("kagura_no_tachi", "tenchi_kaimei", "damage", 35.0);
 
         World world = player.getWorld();
-        Location center = player.getLocation();
+        Location center = player.getLocation().clone();
 
-        player.sendMessage("§5§l☯ TENCHI KAIMEI — HEAVEN AND HELL");
+        player.sendMessage("§5§l☯ TENCHI KAIMEI");
         world.playSound(center, Sound.ENTITY_WITHER_SPAWN, 1f, 0.8f);
         world.playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1f, 1.5f);
-        if (invuln) player.setInvulnerable(true);
 
         for (Player p : plugin.getServer().getOnlinePlayers()) {
             if (!p.equals(player))
                 p.sendMessage(plugin.getConfigManager().getMessage("kagura_ult_broadcast", "{player}", player.getName()));
         }
 
-        // Simultaneous descent — fire from below, holy from above, meeting in middle
+        Random rand = new Random();
+        final double RADIUS = 20.0;
+        final int DURATION_TICKS = 200; // 10 seconds
+        // How many swords fall per tick — ramps up over duration
+        final int SWORDS_PER_TICK = 3;
+        final double DROP_HEIGHT = 20.0;
+
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {
-                if (t > windup) {
-                    // Convergence burst
-                    world.spawnParticle(Particle.EXPLOSION,     center, 3, 1.5, 0.5, 1.5, 0);
-                    world.spawnParticle(Particle.FLAME,         center, 20, 2, 1, 2, 0.1);
-                    world.spawnParticle(Particle.END_ROD,       center, 20, 2, 1, 2, 0.1);
-                    world.spawnParticle(Particle.DRAGON_BREATH, center, 15, 3, 1, 3, 0.05);
-                    world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 1f, 0.5f);
-                    world.strikeLightningEffect(center);
+                if (!player.isOnline() || t >= DURATION_TICKS) { cancel(); return; }
 
-                    for (Entity e : world.getNearbyEntities(center, radius, height, radius)) {
-                        if (!(e instanceof LivingEntity le) || e == player) continue;
-                        le.damage(dmg, player);
-                        le.setFireTicks(100);
-                        le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 3));
-                    }
+                // Snap center to player each tick so it follows them
+                Location cur = player.getLocation();
 
-                    if (invuln) player.setInvulnerable(false);
-                    cancel();
-                    return;
+                for (int s = 0; s < SWORDS_PER_TICK; s++) {
+                    double angle = rand.nextDouble() * Math.PI * 2;
+                    double dist  = Math.sqrt(rand.nextDouble()) * RADIUS;
+                    double ox = Math.cos(angle) * dist;
+                    double oz = Math.sin(angle) * dist;
+
+                    Location spawnLoc = cur.clone().add(ox, DROP_HEIGHT, oz);
+
+                    // ArmorStand holding a netherite sword, tilted to point downward
+                    ArmorStand stand = (ArmorStand) world.spawnEntity(spawnLoc, EntityType.ARMOR_STAND);
+                    stand.setVisible(false);
+                    stand.setGravity(false);
+                    stand.setSmall(true);
+                    stand.setMarker(true);
+                    stand.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack(Material.NETHERITE_SWORD));
+                    // Tilt arm so sword points straight down
+                    stand.setRightArmPose(new org.bukkit.util.EulerAngle(Math.toRadians(200), 0, 0));
+
+                    final double fallSpeed = 1.2 + rand.nextDouble() * 0.8;
+
+                    new BukkitRunnable() {
+                        int life = 0;
+                        @Override public void run() {
+                            if (life > 30) { stand.remove(); cancel(); return; }
+                            Location sl = stand.getLocation().subtract(0, fallSpeed, 0);
+                            stand.teleport(sl);
+
+                            world.spawnParticle(Particle.CRIT,    sl, 2, 0.05, 0.1, 0.05, 0.1);
+                            world.spawnParticle(Particle.END_ROD, sl, 1, 0,    0.05, 0,    0.02);
+
+                            // Damage anything within 1 block
+                            for (Entity e : world.getNearbyEntities(sl, 1.0, 1.5, 1.0)) {
+                                if (!(e instanceof LivingEntity le) || e == player || e instanceof ArmorStand) continue;
+                                le.damage(dmg, player);
+                                le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1, false, false, false));
+                                world.spawnParticle(Particle.CRIT, sl, 10, 0.3, 0.3, 0.3, 0.2);
+                                world.playSound(sl, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.7f, 0.9f + (float)rand.nextDouble() * 0.4f);
+                                stand.remove();
+                                cancel();
+                                return;
+                            }
+
+                            // Remove if it hits the ground
+                            if (sl.getBlock().getType().isSolid()) { stand.remove(); cancel(); }
+                            life++;
+                        }
+                    }.runTaskTimer(plugin, 0L, 1L);
                 }
 
-                // Fire ascending from below
-                double fireY = t * (height / windup) * 0.5;
-                Location firePt = center.clone().add(0, fireY, 0);
-                if (t % 2 == 0) {
-                    world.spawnParticle(Particle.FLAME, firePt, 3, 0.5, 0.1, 0.5, 0.04);
-                    world.spawnParticle(Particle.LAVA,  firePt, 1, 0.2, 0.1, 0.2, 0);
-                }
-
-                // Holy descending from above
-                double holyY = height - t * (height / windup) * 0.5;
-                Location holyPt = center.clone().add(0, holyY, 0);
-                if (t % 2 == 1) {
-                    world.spawnParticle(Particle.END_ROD, holyPt, 3, 0.3, 0.1, 0.3, 0.02);
-                    world.spawnParticle(Particle.ENCHANT, holyPt, 2, 0.2, 0.1, 0.2, 0.05);
-                }
+                // Impact sound occasionally
+                if (t % 5 == 0) world.playSound(cur, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.3f, 0.8f + (float)rand.nextDouble() * 0.4f);
 
                 t++;
             }

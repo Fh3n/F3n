@@ -13,12 +13,9 @@ import java.util.*;
 
 public class MurasameSkills {
 
-    // Curse stack tracking — max 5
     private static final Map<UUID, Integer> curseStacks = new HashMap<>();
     private static final Set<UUID>          marked      = new HashSet<>();
 
-    // ── Passive ───────────────────────────────────────────────────────────────
-    // Each hit applies a curse stack + wither. At max stacks, target takes bonus damage.
     public static void applyMurasameCurse(LivingEntity target, Player attacker, MythicBladesPlugin plugin) {
         UUID id = target.getUniqueId();
         int maxStacks = plugin.getConfigManager().skillInt("murasame", "passive", "max_stacks", 5);
@@ -37,8 +34,7 @@ public class MurasameSkills {
             target.getLocation().add(0, 1, 0), 3, 0.2, 0.3, 0.2, 0.05);
 
         if (target instanceof Player p) {
-            String bar = getCurseBar(stacks);
-            p.sendActionBar(Component.text(bar));
+            p.sendActionBar(Component.text(getCurseBar(stacks)));
         }
     }
 
@@ -66,8 +62,6 @@ public class MurasameSkills {
         }.runTaskTimer(plugin, 0L, 5L);
     }
 
-    // ── Curse Mark / Lethal Poison (RMB) ──────────────────────────────────────
-    // Detonate all marked targets in range — more stacks = more damage
     public static void lethalPoisonActive(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "lethal_poison")) {
@@ -76,13 +70,13 @@ public class MurasameSkills {
         }
         cd.set(player.getUniqueId(), "lethal_poison", plugin.getConfigManager().skillCooldownMs("murasame", "lethal_poison"));
 
-        double baseDmg   = plugin.getConfigManager().skill("murasame", "lethal_poison", "damage", 10.0);
-        double radius    = plugin.getConfigManager().skill("murasame", "lethal_poison", "radius", 6.0);
-        int witDur       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "wither_duration", 120);
-        int witAmp       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "wither_amplifier", 1);
-        int slwDur       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "slowness_duration", 100);
-        int slwAmp       = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "slowness_amplifier", 2);
-        int stacksApply  = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "curse_stacks_applied", 3);
+        double baseDmg  = plugin.getConfigManager().skill("murasame", "lethal_poison", "damage", 10.0);
+        double radius   = plugin.getConfigManager().skill("murasame", "lethal_poison", "radius", 6.0);
+        int witDur      = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "wither_duration", 120);
+        int witAmp      = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "wither_amplifier", 1);
+        int slwDur      = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "slowness_duration", 100);
+        int slwAmp      = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "slowness_amplifier", 2);
+        int stacksApply = plugin.getConfigManager().skillInt("murasame", "lethal_poison", "curse_stacks_applied", 3);
 
         World world = player.getWorld();
         Location loc = player.getLocation().add(0, 1, 0);
@@ -95,25 +89,17 @@ public class MurasameSkills {
             if (!(e instanceof LivingEntity le) || e == player) continue;
             UUID id = le.getUniqueId();
             int existingStacks = curseStacks.getOrDefault(id, 0);
-
-            // Detonate existing stacks
             double detonationDmg = baseDmg + existingStacks * 4.0;
             le.damage(detonationDmg, player);
-
-            // Apply fresh stacks
             curseStacks.put(id, stacksApply);
             marked.add(id);
-
             le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, witAmp));
             le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slwDur, slwAmp));
             ParticleUtils.spawn(world, Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 10, 0.4, 0.4, 0.4, 0.1);
-
             if (le instanceof Player p) p.sendMessage("§4☠ YOU ARE MARKED.");
         }
     }
 
-    // ── Berserk Mode (Shift+RMB) ──────────────────────────────────────────────
-    // Strength V + Speed III for duration; aura pulses curse damage; aftermath debuff
     public static void berserkMode(Player player, MythicBladesPlugin plugin) {
         var cd = plugin.getCooldownManager();
         if (cd.isOnCooldown(player.getUniqueId(), "berserk_mode")) {
