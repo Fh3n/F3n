@@ -50,7 +50,6 @@ dev\mythicblades\swords\SenbonzakuraSkills$3.class
 dev\mythicblades\managers\FusionManager$1.class
 dev\mythicblades\swords\BladeOfThawSkills$1.class
 dev\mythicblades\swords\HabakiriSkills$2.class
-dev\mythicblades\swords\KaguraSkills$3$1.class
 dev\mythicblades\listeners\SwordSkillListener.class
 dev\mythicblades\swords\EaSkills$5.class
 dev\mythicblades\swords\ExcaliburSkills$3.class
@@ -62,7 +61,6 @@ dev\mythicblades\swords\SenbonzakuraSkills$2.class
 dev\mythicblades\SwordType$Tier.class
 dev\mythicblades\listeners\CollectAllListener.class
 dev\mythicblades\swords\KaguraSkills$3.class
-dev\mythicblades\swords\BladeOfThawSkills$8.class
 dev\mythicblades\swords\EnmaSkills$2.class
 dev\mythicblades\swords\BladeOfThawSkills$2.class
 dev\mythicblades\swords\EaSkills.class

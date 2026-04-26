@@ -28,14 +28,6 @@ blade_of_thaw:
   particles:
     aura_primary: SNOWFLAKE
     aura_secondary: END_ROD
-    aura_primary_count: 4
-    aura_secondary_count: 1
-    impact_primary: SNOWFLAKE
-    impact_secondary: END_ROD
-    impact_primary_count: 30
-    impact_secondary_count: 15
-    sentinel_orbit: END_ROD
-    projectile: SNOWFLAKE
 
 excalibur:
   passive:
@@ -73,17 +65,6 @@ excalibur:
     slowness_amplifier: 3
     slowness_duration: 100
     cooldown: 60
-  particles:
-    aura_primary: END_ROD
-    aura_secondary: ENCHANT
-    aura_primary_count: 3
-    aura_secondary_count: 4
-    hit_primary: END_ROD
-    hit_secondary: ENCHANT
-    hit_primary_count: 6
-    hit_secondary_count: 5
-    pulse_ring: END_ROD
-    ult_ring: END_ROD
 
 ea:
   passive:
@@ -113,16 +94,6 @@ ea:
     descend_speed: 1.2
     descend_steps: 60
     cooldown: 75
-  particles:
-    aura_primary: PORTAL
-    aura_secondary: DRAGON_BREATH
-    aura_primary_count: 5
-    aura_secondary_count: 2
-    hit_primary: PORTAL
-    hit_secondary: DRAGON_BREATH
-    void_slash: SMOKE
-    barrage_trail: CRIT
-    beam: DRAGON_BREATH
 
 murasame:
   passive:
@@ -152,15 +123,6 @@ murasame:
     aftermath_slowness_duration: 200
     aftermath_slowness_amplifier: 1
     cooldown: 120
-  particles:
-    aura_primary: DAMAGE_INDICATOR
-    aura_primary_count: 2
-    strike_primary: EFFECT
-    strike_secondary: DAMAGE_INDICATOR
-    strike_primary_count: 15
-    strike_secondary_count: 8
-    berserk_primary: DAMAGE_INDICATOR
-    berserk_secondary: FLAME
 
 enma:
   passive:
@@ -187,18 +149,6 @@ enma:
     weakness_duration: 80
     weakness_amplifier: 2
     cooldown: 25
-  particles:
-    aura_primary: FLAME
-    aura_secondary: NONE
-    aura_primary_count: 5
-    hit_primary: FLAME
-    hit_secondary: LAVA
-    hit_primary_count: 10
-    hit_secondary_count: 3
-    slash_primary: FLAME
-    slash_secondary: LAVA
-    slash_primary_count: 5
-    slash_secondary_count: 2
 
 ame_no_habakiri:
   passive:
@@ -223,17 +173,6 @@ ame_no_habakiri:
     strength_duration: 40
     strength_amplifier: 1
     cooldown: 30
-  particles:
-    aura_primary: END_ROD
-    aura_secondary: ENCHANT
-    aura_primary_count: 3
-    aura_secondary_count: 3
-    hit_primary: END_ROD
-    hit_secondary: SPLASH
-    hit_primary_count: 8
-    hit_secondary_count: 8
-    parry_ring: END_ROD
-    severance: SWEEP_ATTACK
 
 nichirin:
   passive:
@@ -267,15 +206,6 @@ nichirin:
     phase_interval: 6
     invuln_windup: 15
     cooldown: 45
-  particles:
-    aura_primary: FLAME
-    aura_secondary: LAVA
-    aura_primary_count: 3
-    aura_secondary_count: 1
-    trail: FLAME
-    sweep: FLAME
-    spiral: FLAME
-    diagonal: FLAME
 
 senbonzakura:
   passive:
@@ -312,18 +242,6 @@ senbonzakura:
     slowness_amplifier: 2
     blade_count: 8
     cooldown: 60
-  particles:
-    aura_primary: CHERRY_LEAVES
-    aura_secondary: ENCHANT
-    aura_primary_count: 6
-    aura_secondary_count: 2
-    bleed_orbit: CHERRY_LEAVES
-    scatter_primary: CHERRY_LEAVES
-    scatter_secondary: ENCHANT
-    scatter_tertiary: END_ROD
-    prison_cage: CHERRY_LEAVES
-    kageyoshi_blade: CHERRY_LEAVES
-    kageyoshi_burst: CHERRY_LEAVES
 
 kagura_no_tachi:
   passive:
@@ -355,15 +273,3 @@ kagura_no_tachi:
     descent_step: 1.4
     invuln: true
     cooldown: 90
-  particles:
-    aura_primary: FLAME
-    aura_secondary: END_ROD
-    aura_primary_count: 3
-    aura_secondary_count: 2
-    sweep_fire: FLAME
-    sweep_holy: CHERRY_LEAVES
-    drill: END_ROD
-    tenchi_fire: FLAME
-    tenchi_holy: CHERRY_LEAVES
-    tenchi_burst_fire: FLAME
-    tenchi_burst_holy: CHERRY_LEAVES
