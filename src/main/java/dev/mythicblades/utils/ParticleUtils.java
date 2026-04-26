@@ -43,54 +43,54 @@ public class ParticleUtils {
         }
     }
 
+    // Aura methods — kept minimal; called every 6 ticks so counts are already low
     public static void frostAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.SNOWFLAKE, l, 4, 0.3, 0.5, 0.3, 0.01);
+        spawn(p.getWorld(), Particle.SNOWFLAKE, l, 2, 0.3, 0.5, 0.3, 0.01);
         spawn(p.getWorld(), Particle.END_ROD,   l, 1, 0.2, 0.4, 0.2, 0.01);
     }
 
     public static void holyAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.END_ROD, l, 3, 0.3, 0.5, 0.3, 0.02);
-        spawn(p.getWorld(), Particle.ENCHANT, l, 4, 0.4, 0.6, 0.4, 0.1);
+        spawn(p.getWorld(), Particle.END_ROD, l, 2, 0.3, 0.5, 0.3, 0.02);
+        spawn(p.getWorld(), Particle.ENCHANT, l, 2, 0.4, 0.6, 0.4, 0.1);
     }
 
     public static void voidAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.PORTAL,        l, 5, 0.3, 0.5, 0.3, 0.3);
-        spawn(p.getWorld(), Particle.DRAGON_BREATH, l, 2, 0.2, 0.3, 0.2, 0.01);
+        spawn(p.getWorld(), Particle.PORTAL,        l, 3, 0.3, 0.5, 0.3, 0.3);
+        spawn(p.getWorld(), Particle.DRAGON_BREATH, l, 1, 0.2, 0.3, 0.2, 0.01);
     }
 
     public static void bloodAura(Player p) {
-        spawn(p.getWorld(), Particle.DAMAGE_INDICATOR, p.getLocation().add(0, 1, 0), 2, 0.2, 0.4, 0.2, 0.01);
+        spawn(p.getWorld(), Particle.DAMAGE_INDICATOR, p.getLocation().add(0, 1, 0), 1, 0.2, 0.4, 0.2, 0.01);
     }
 
     public static void enmaAura(Player p) {
-        spawn(p.getWorld(), Particle.FLAME, p.getLocation().add(0, 1, 0), 5, 0.3, 0.5, 0.3, 0.04);
+        spawn(p.getWorld(), Particle.FLAME, p.getLocation().add(0, 1, 0), 3, 0.3, 0.5, 0.3, 0.04);
     }
 
     public static void habakiriAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.END_ROD, l, 3, 0.2, 0.4, 0.2, 0.02);
-        spawn(p.getWorld(), Particle.ENCHANT, l, 3, 0.3, 0.5, 0.3, 0.05);
+        spawn(p.getWorld(), Particle.END_ROD, l, 2, 0.2, 0.4, 0.2, 0.02);
+        spawn(p.getWorld(), Particle.ENCHANT, l, 2, 0.3, 0.5, 0.3, 0.05);
     }
 
     public static void nichirinAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.FLAME, l, 3, 0.2, 0.4, 0.2, 0.03);
-        spawn(p.getWorld(), Particle.LAVA,  l, 1, 0.1, 0.3, 0.1, 0);
+        spawn(p.getWorld(), Particle.FLAME, l, 2, 0.2, 0.4, 0.2, 0.03);
     }
 
     public static void senbonAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.CHERRY_LEAVES, l, 6, 0.5, 0.7, 0.5, 0.04);
-        spawn(p.getWorld(), Particle.ENCHANT,       l, 2, 0.3, 0.5, 0.3, 0.08);
+        spawn(p.getWorld(), Particle.CHERRY_LEAVES, l, 3, 0.5, 0.7, 0.5, 0.04);
+        spawn(p.getWorld(), Particle.ENCHANT,       l, 1, 0.3, 0.5, 0.3, 0.08);
     }
 
     public static void kaguraAura(Player p) {
         Location l = p.getLocation().add(0, 1, 0);
-        spawn(p.getWorld(), Particle.FLAME,   l, 3, 0.3, 0.5, 0.3, 0.03);
-        spawn(p.getWorld(), Particle.END_ROD, l, 2, 0.2, 0.4, 0.2, 0.02);
+        spawn(p.getWorld(), Particle.FLAME,   l, 2, 0.3, 0.5, 0.3, 0.03);
+        spawn(p.getWorld(), Particle.END_ROD, l, 1, 0.2, 0.4, 0.2, 0.02);
     }
 
     public static void sentinelOrbit(Player p, int count) {
@@ -101,7 +101,6 @@ public class ParticleUtils {
             double a = (2 * Math.PI / count) * i + t;
             Location pt = center.clone().add(Math.cos(a) * 1.8, 0, Math.sin(a) * 1.8);
             spawn(w, Particle.SNOWFLAKE, pt, 1, 0, 0, 0, 0);
-            spawn(w, Particle.END_ROD,   pt, 1, 0, 0, 0, 0);
         }
     }
 }

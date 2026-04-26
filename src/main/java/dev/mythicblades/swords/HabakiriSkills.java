@@ -65,7 +65,7 @@ public class HabakiriSkills {
                     ParticleUtils.ring(world, Particle.END_ROD, landing, r, 24);
                     world.spawnParticle(Particle.ENCHANT, landing, 20, r * 0.4, 0.3, r * 0.4, 0.5);
                     for (Entity e : world.getNearbyEntities(landing, r, 2, r)) {
-                        if (!(e instanceof LivingEntity le) || e == player) continue;
+                        if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                         le.damage(dmg, player);
                         le.setVelocity(new Vector(0, kbY, 0));
                     }
@@ -117,7 +117,7 @@ public class HabakiriSkills {
                     world.spawnParticle(Particle.END_ROD, cur, 3, 0.3, 0.3, 0.3, 0.03);
                 }
                 for (Entity e : world.getNearbyEntities(cur, hbox, 2, hbox)) {
-                    if (!(e instanceof LivingEntity le) || e == player || !hit.add(e.getUniqueId())) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead() || !hit.add(e.getUniqueId())) continue;
                     le.damage(dmg, player);
                     le.setVelocity(new Vector(0, kbY, 0));
                 }

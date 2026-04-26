@@ -27,6 +27,7 @@ public class SwordPassiveListener implements Listener {
     }
 
     private void startAuraTicker() {
+        // Runs every 6 ticks (was 4) — saves ~33% passive overhead
         new BukkitRunnable() {
             @Override public void run() {
                 for (Player player : plugin.getServer().getOnlinePlayers()) {
@@ -47,12 +48,12 @@ public class SwordPassiveListener implements Listener {
                             boolean hasHabakiri = hasInInventory(player, SwordType.AME_NO_HABAKIRI);
                             int witherLevel = plugin.getConfigManager().swordInt("enma", "wither_self.amplifier", 1);
                             if (!hasHabakiri) {
-                                player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 40, witherLevel - 1, true, false, false));
+                                player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, witherLevel - 1, true, false, false));
                             } else {
                                 int regenAmp = plugin.getConfigManager().swordInt("enma", "paired_regen.regen_amplifier", 1);
                                 int strAmp   = plugin.getConfigManager().swordInt("enma", "paired_regen.strength_amplifier", 2);
-                                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, regenAmp, true, false, false));
-                                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,     40, strAmp,   true, false, false));
+                                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, regenAmp, true, false, false));
+                                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,     60, strAmp,   true, false, false));
                             }
                         }
                         case AME_NO_HABAKIRI -> ParticleUtils.habakiriAura(player);
@@ -66,7 +67,7 @@ public class SwordPassiveListener implements Listener {
                             int regenAmp = plugin.getConfigManager().swordInt("kagura_no_tachi", "self_buffs.regen_amplifier", 2);
                             int strAmp   = plugin.getConfigManager().swordInt("kagura_no_tachi", "self_buffs.strength_amplifier", 3);
                             int resAmp   = plugin.getConfigManager().swordInt("kagura_no_tachi", "self_buffs.resistance_amplifier", 1);
-                            int buffDur  = plugin.getConfigManager().swordInt("kagura_no_tachi", "self_buffs.buff_duration", 40);
+                            int buffDur  = plugin.getConfigManager().swordInt("kagura_no_tachi", "self_buffs.buff_duration", 60);
                             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, buffDur, regenAmp, true, false, false));
                             player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,     buffDur, strAmp,   true, false, false));
                             player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE,   buffDur, resAmp,   true, false, false));
@@ -76,7 +77,7 @@ public class SwordPassiveListener implements Listener {
                     plugin.getSkillHotbarManager().showSkillBar(player, type);
                 }
             }
-        }.runTaskTimer(plugin, 0L, 4L);
+        }.runTaskTimer(plugin, 0L, 6L);
     }
 
     @EventHandler

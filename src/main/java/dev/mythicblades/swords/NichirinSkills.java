@@ -51,7 +51,7 @@ public class NichirinSkills {
                 if (!player.isOnline() || t++ > duration) { cancel(); return; }
                 if (t % 3 == 0) world.spawnParticle(Particle.FLAME, player.getLocation(), 2, 0.2, 0.2, 0.2, 0);
                 for (Entity e : world.getNearbyEntities(player.getLocation(), hbox, hbox, hbox)) {
-                    if (!(e instanceof LivingEntity le) || e == player) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                     le.damage(dmgPerTick, player);
                     le.setFireTicks(fireTicks);
                 }
@@ -92,7 +92,7 @@ public class NichirinSkills {
                 world.spawnParticle(Particle.FLAME, p, 2, 0.1, 0.1, 0.1, 0.02);
                 world.spawnParticle(Particle.LAVA,  p, 1, 0, 0, 0, 0);
                 for (Entity e : world.getNearbyEntities(p, hbox, hbox, hbox)) {
-                    if (!(e instanceof LivingEntity le) || e == player) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                     le.damage(dmg, player);
                     le.setFireTicks(fireTicks);
                 }
@@ -166,7 +166,7 @@ public class NichirinSkills {
                         world.spawnParticle(Particle.EXPLOSION, origin, 1, 0.2, 0.2, 0.2, 0);
                         world.playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.2f);
                         for (Entity e : world.getNearbyEntities(origin, finisherR, finisherR, finisherR)) {
-                            if (!(e instanceof LivingEntity le) || e == player) continue;
+                            if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                             le.damage(finisherDmg, player);
                             le.setFireTicks(finisherFire);
                         }
@@ -184,7 +184,7 @@ public class NichirinSkills {
             Location p = origin.clone().add(offset);
             if (i % 2 == 0) world.spawnParticle(Particle.FLAME, p, 1);
             for (Entity e : world.getNearbyEntities(p, 2, 2, 2)) {
-                if (!(e instanceof LivingEntity le) || e == player) continue;
+                if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                 le.damage(dmg, player);
             }
         }

@@ -31,7 +31,7 @@ public class MurasameSkills {
         target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, wkDur, 0));
 
         ParticleUtils.spawn(target.getWorld(), Particle.DAMAGE_INDICATOR,
-            target.getLocation().add(0, 1, 0), 3, 0.2, 0.3, 0.2, 0.05);
+            target.getLocation().add(0, 1, 0), 2, 0.2, 0.3, 0.2, 0.05);
 
         if (target instanceof Player p) {
             p.sendActionBar(Component.text(getCurseBar(stacks)));
@@ -55,11 +55,12 @@ public class MurasameSkills {
     }
 
     public static void startHudTask(MythicBladesPlugin plugin) {
+        // Every 8 ticks (was 5) — HUD updates don't need to be this frequent
         new BukkitRunnable() {
             @Override public void run() {
                 for (Player p : plugin.getServer().getOnlinePlayers()) updateCurseHud(p);
             }
-        }.runTaskTimer(plugin, 0L, 5L);
+        }.runTaskTimer(plugin, 0L, 8L);
     }
 
     public static void lethalPoisonActive(Player player, MythicBladesPlugin plugin) {
@@ -83,10 +84,10 @@ public class MurasameSkills {
 
         player.sendMessage("§4☠ CURSE MARK — Death begins.");
         world.playSound(loc, Sound.ENTITY_WITHER_AMBIENT, 1f, 0.6f);
-        world.spawnParticle(Particle.SMOKE, loc, 15, 0.5, 0.5, 0.5, 0.02);
+        world.spawnParticle(Particle.SMOKE, loc, 8, 0.5, 0.5, 0.5, 0.02);
 
         for (Entity e : world.getNearbyEntities(loc, radius, radius, radius)) {
-            if (!(e instanceof LivingEntity le) || e == player) continue;
+            if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
             UUID id = le.getUniqueId();
             int existingStacks = curseStacks.getOrDefault(id, 0);
             double detonationDmg = baseDmg + existingStacks * 4.0;
@@ -95,7 +96,7 @@ public class MurasameSkills {
             marked.add(id);
             le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, witAmp));
             le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, slwDur, slwAmp));
-            ParticleUtils.spawn(world, Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 10, 0.4, 0.4, 0.4, 0.1);
+            ParticleUtils.spawn(world, Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 5, 0.4, 0.4, 0.4, 0.1);
             if (le instanceof Player p) p.sendMessage("§4☠ YOU ARE MARKED.");
         }
     }
@@ -131,19 +132,20 @@ public class MurasameSkills {
                     return;
                 }
                 Location loc = player.getLocation().add(0, 1, 0);
-                if (tick % 4 == 0)
-                    world.spawnParticle(Particle.DAMAGE_INDICATOR, loc, 2, 0.4, 0.5, 0.4, 0.03);
+                // Particle every 8 ticks (was every 4)
+                if (tick % 8 == 0)
+                    world.spawnParticle(Particle.DAMAGE_INDICATOR, loc, 1, 0.4, 0.5, 0.4, 0.03);
 
                 if (tick % interval == 0) {
                     for (Entity e : world.getNearbyEntities(player.getLocation(), aoeR, aoeR, aoeR)) {
-                        if (!(e instanceof LivingEntity le) || e == player) continue;
+                        if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                         UUID id = le.getUniqueId();
                         int stacks = curseStacks.getOrDefault(id, 0) + 1;
                         curseStacks.put(id, stacks);
                         le.damage(aoeDmg + stacks, player);
                         le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 1));
                         ParticleUtils.spawn(world, Particle.DAMAGE_INDICATOR,
-                            le.getLocation().add(0, 1, 0), 4, 0.2, 0.3, 0.2, 0.05);
+                            le.getLocation().add(0, 1, 0), 3, 0.2, 0.3, 0.2, 0.05);
                     }
                 }
                 tick++;

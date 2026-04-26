@@ -22,7 +22,7 @@ public class EaSkills {
         target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, 0, false, false, false));
         if (Math.random() < plugin.getConfigManager().skill("ea", "passive", "particle_chance", 0.25)) {
             ParticleUtils.spawn(target.getWorld(), Particle.PORTAL,
-                target.getLocation().add(0, 1, 0), 3, 0.2, 0.3, 0.2, 0.2);
+                target.getLocation().add(0, 1, 0), 2, 0.2, 0.3, 0.2, 0.2);
         }
     }
 
@@ -68,15 +68,17 @@ public class EaSkills {
             Location cur = start.clone();
             @Override public void run() {
                 if (step > 40) { cancel(); return; }
+                if (!player.isOnline()) { cancel(); return; }
                 cur.add(dir.clone().multiply(speed));
-                if (step % 2 == 0) {
+                // Particles every 3 steps (was every step)
+                if (step % 3 == 0) {
                     world.spawnParticle(Particle.CRIT, cur, 1);
-                    world.spawnParticle(Particle.PORTAL, cur, 2, 0.05, 0.05, 0.05, 0.1);
+                    world.spawnParticle(Particle.PORTAL, cur, 1, 0.05, 0.05, 0.05, 0.1);
                 }
                 for (Entity e : world.getNearbyEntities(cur, hbox, hbox, hbox)) {
-                    if (!(e instanceof LivingEntity le) || e == player) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                     le.damage(dmg, player);
-                    world.spawnParticle(Particle.PORTAL, cur, 8, 0.2, 0.2, 0.2, 0.3);
+                    world.spawnParticle(Particle.PORTAL, cur, 5, 0.2, 0.2, 0.2, 0.3);
                     cancel();
                     return;
                 }
@@ -114,8 +116,9 @@ public class EaSkills {
                     fireRupture(player, start, dir, world, dmg, range, width, liftY, plugin);
                     return;
                 }
-                Location fx = start.clone().add(0, t * 0.3, 0);
-                if (t % 2 == 0) world.spawnParticle(Particle.PORTAL, fx, 2, 0.1, 0.1, 0.1, 0.1);
+                if (t % 3 == 0)
+                    world.spawnParticle(Particle.PORTAL, start.clone().add(0, t * 0.3, 0),
+                        1, 0.1, 0.1, 0.1, 0.1);
                 t++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
@@ -136,17 +139,19 @@ public class EaSkills {
                 if (step > range) { cancel(); return; }
                 cur.add(dir.clone().multiply(0.7));
 
-                for (double w = -width / 2; w <= width / 2; w += 2.0) {
-                    for (double h = -1; h <= 3; h += 2) {
-                        Location p = cur.clone().add(right.clone().multiply(w)).add(0, h, 0);
-                        if (step % 2 == 0) world.spawnParticle(Particle.PORTAL, p, 1, 0, 0, 0, 0.05);
+                // Only spawn particles every 2 steps
+                if (step % 2 == 0) {
+                    for (double w = -width / 2; w <= width / 2; w += 3.0) {
+                        for (double h = 0; h <= 2; h += 2) {
+                            Location p = cur.clone().add(right.clone().multiply(w)).add(0, h, 0);
+                            world.spawnParticle(Particle.PORTAL, p, 1, 0, 0, 0, 0.05);
+                        }
                     }
+                    world.spawnParticle(Particle.DRAGON_BREATH, cur, 1, 0.2, 0.5, 0.2, 0.02);
                 }
-                if (step % 3 == 0)
-                    world.spawnParticle(Particle.DRAGON_BREATH, cur, 2, 0.2, 0.5, 0.2, 0.02);
 
                 for (Entity e : world.getNearbyEntities(cur, width / 2, 3, width / 2)) {
-                    if (!(e instanceof LivingEntity le) || e == player || !hit.add(e.getUniqueId())) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead() || !hit.add(e.getUniqueId())) continue;
                     le.damage(dmg, player);
                     le.setVelocity(new Vector(0, liftY, 0));
                 }
@@ -163,11 +168,11 @@ public class EaSkills {
         }
         cd.set(player.getUniqueId(), "enuma_elish", plugin.getConfigManager().skillCooldownMs("ea", "enuma_elish"));
 
-        double beamDmg    = plugin.getConfigManager().skill("ea", "enuma_elish", "beam_damage", 30.0);
-        double beamHbox   = plugin.getConfigManager().skill("ea", "enuma_elish", "beam_hitbox", 3.0);
-        double skyHeight  = plugin.getConfigManager().skill("ea", "enuma_elish", "sky_height", 35.0);
-        double descSpeed  = plugin.getConfigManager().skill("ea", "enuma_elish", "descend_speed", 1.2);
-        int    descSteps  = plugin.getConfigManager().skillInt("ea", "enuma_elish", "descend_steps", 60);
+        double beamDmg   = plugin.getConfigManager().skill("ea", "enuma_elish", "beam_damage", 30.0);
+        double beamHbox  = plugin.getConfigManager().skill("ea", "enuma_elish", "beam_hitbox", 3.0);
+        double skyHeight = plugin.getConfigManager().skill("ea", "enuma_elish", "sky_height", 35.0);
+        double descSpeed = plugin.getConfigManager().skill("ea", "enuma_elish", "descend_speed", 1.2);
+        int    descSteps = plugin.getConfigManager().skillInt("ea", "enuma_elish", "descend_steps", 60);
 
         World world = player.getWorld();
         Location center = player.getLocation().add(0, 1, 0);
@@ -189,10 +194,10 @@ public class EaSkills {
                     descendBeam(player, center, world, beamDmg, beamHbox, skyHeight, descSpeed, descSteps, plugin);
                     return;
                 }
-                Location sky = center.clone().add(0, skyHeight - t * 0.5, 0);
-                if (t % 2 == 0) {
-                    world.spawnParticle(Particle.PORTAL, sky, 4, 1, 0.2, 1, 0.2);
-                    world.spawnParticle(Particle.DRAGON_BREATH, sky, 2, 0.5, 0.1, 0.5, 0.05);
+                if (t % 3 == 0) {
+                    Location sky = center.clone().add(0, skyHeight - t * 0.5, 0);
+                    world.spawnParticle(Particle.PORTAL, sky, 2, 1, 0.2, 1, 0.2);
+                    world.spawnParticle(Particle.DRAGON_BREATH, sky, 1, 0.5, 0.1, 0.5, 0.05);
                 }
                 t++;
             }
@@ -209,20 +214,21 @@ public class EaSkills {
             Location cur = center.clone().add(0, skyHeight, 0);
             @Override public void run() {
                 if (step > steps) {
-                    world.spawnParticle(Particle.EXPLOSION, center, 3, 1, 0.5, 1, 0);
-                    world.spawnParticle(Particle.DRAGON_BREATH, center, 30, 3, 1, 3, 0.1);
+                    world.spawnParticle(Particle.EXPLOSION, center, 2, 1, 0.5, 1, 0);
+                    world.spawnParticle(Particle.DRAGON_BREATH, center, 15, 3, 1, 3, 0.1);
                     world.strikeLightningEffect(center);
                     player.setInvulnerable(false);
                     cancel();
                     return;
                 }
                 cur.subtract(0, speed, 0);
+                // Particles every 2 steps
                 if (step % 2 == 0) {
-                    world.spawnParticle(Particle.DRAGON_BREATH, cur, 3, 0.3, 0.1, 0.3, 0.03);
-                    world.spawnParticle(Particle.PORTAL, cur, 5, 0.5, 0.2, 0.5, 0.3);
+                    world.spawnParticle(Particle.DRAGON_BREATH, cur, 2, 0.3, 0.1, 0.3, 0.03);
+                    world.spawnParticle(Particle.PORTAL, cur, 3, 0.5, 0.2, 0.5, 0.3);
                 }
                 for (Entity e : world.getNearbyEntities(cur, hbox, hbox, hbox)) {
-                    if (!(e instanceof LivingEntity le) || e == player) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
                     le.damage(dmg, player);
                 }
                 step++;

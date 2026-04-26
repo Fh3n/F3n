@@ -28,14 +28,14 @@ public class EnmaSkills {
         new BukkitRunnable() {
             int t = 0;
             @Override public void run() {
-                if (t++ >= echoCt || target.isDead()) { cancel(); return; }
+                if (t++ >= echoCt || target.isDead() || !target.isValid()) { cancel(); return; }
                 target.damage(echoD, attacker);
             }
         }.runTaskTimer(MythicBladesPlugin.getInstance(), (long)echoDelay, (long)echoDelay);
 
         if (Math.random() < chance) {
             ParticleUtils.spawn(target.getWorld(), Particle.FLAME,
-                target.getLocation().add(0, 1, 0), 6, 0.2, 0.3, 0.2, 0.04);
+                target.getLocation().add(0, 1, 0), 4, 0.2, 0.3, 0.2, 0.04);
         }
     }
 
@@ -105,7 +105,7 @@ public class EnmaSkills {
 
                 if (step % 2 == 0) {
                     for (Entity e : world.getNearbyEntities(cur, width / 2, 2.5, width / 2)) {
-                        if (!(e instanceof LivingEntity le) || e == player || !hit.add(e.getUniqueId())) continue;
+                        if (!(e instanceof LivingEntity le) || e == player || le.isDead() || !hit.add(e.getUniqueId())) continue;
                         le.damage(dmg, player);
                         le.setFireTicks(fireTicks);
                         le.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, witDur, 1));

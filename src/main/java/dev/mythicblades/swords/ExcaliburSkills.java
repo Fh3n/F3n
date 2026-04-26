@@ -25,7 +25,7 @@ public class ExcaliburSkills {
         target.damage(bonus, attacker);
         target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, wkDur, 0, false, false, false));
         ParticleUtils.spawn(target.getWorld(), Particle.END_ROD,
-            target.getLocation().add(0, 1, 0), 5, 0.2, 0.3, 0.2, 0.03);
+            target.getLocation().add(0, 1, 0), 3, 0.2, 0.3, 0.2, 0.03);
     }
 
     public static void twinStrike(Player player, MythicBladesPlugin plugin) {
@@ -75,10 +75,12 @@ public class ExcaliburSkills {
             @Override public void run() {
                 if (step > steps) { cancel(); return; }
                 cur.add(dir.clone().multiply(stepSz));
-                world.spawnParticle(Particle.SWEEP_ATTACK, cur, 1);
-                world.spawnParticle(Particle.END_ROD, cur, 1, 0.1, 0.1, 0.1, 0.02);
+                if (step % 2 == 0) {
+                    world.spawnParticle(Particle.SWEEP_ATTACK, cur, 1);
+                    world.spawnParticle(Particle.END_ROD, cur, 1, 0.1, 0.1, 0.1, 0.02);
+                }
                 for (Entity e : world.getNearbyEntities(cur, hitbox, hitbox, hitbox)) {
-                    if (!(e instanceof LivingEntity le) || e == player || !hit.add(e.getUniqueId())) continue;
+                    if (!(e instanceof LivingEntity le) || e == player || le.isDead() || !hit.add(e.getUniqueId())) continue;
                     le.damage(dmg, player);
                     le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1));
                 }
@@ -106,17 +108,18 @@ public class ExcaliburSkills {
         player.sendMessage("§e✦ Holy Pulse!");
         world.playSound(loc, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 1.8f);
 
+        // Expanding ring — run every 2 ticks
         new BukkitRunnable() {
             double r = 0.5;
             @Override public void run() {
                 if (r > radius + 2) { cancel(); return; }
-                ParticleUtils.ring(world, Particle.END_ROD, loc, r, Math.max(16, (int)(r * 5)));
-                r += 1.2;
+                ParticleUtils.ring(world, Particle.END_ROD, loc, r, Math.max(12, (int)(r * 4)));
+                r += 1.5;
             }
         }.runTaskTimer(plugin, 0L, 2L);
 
         for (Entity e : world.getNearbyEntities(loc, radius, 5, radius)) {
-            if (!(e instanceof LivingEntity le) || e == player) continue;
+            if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
             le.damage(dmg, player);
             le.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
             le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
@@ -164,24 +167,73 @@ public class ExcaliburSkills {
                     cancel();
                     return;
                 }
-                if (tick % 4 == 0) spawnPillar(target, world, radius, height);
-                for (Entity e : world.getNearbyEntities(target, radius, height, radius)) {
-                    if (!(e instanceof LivingEntity le) || e == player) continue;
-                    le.damage(dmgPerTick, player);
-                    le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 3));
-                    if (tick % 8 == 0) le.setVelocity(new Vector(0, 1.4, 0));
+
+                // Falling light streaks — particles start high and drift down
+                // Every 3 ticks spawn a fresh batch of falling streaks
+                if (tick % 3 == 0) {
+                    spawnFallingBeams(target, world, radius, height, tick);
                 }
+
+                // Pulsing ground ring — beat every 8 ticks for "alive" feel
+                if (tick % 8 == 0) {
+                    double pulseR = radius * (0.6 + 0.4 * Math.sin(tick * 0.15));
+                    ParticleUtils.ring(world, Particle.END_ROD, target.clone().add(0, 0.2, 0),
+                        pulseR, (int)(pulseR * 4));
+                    ParticleUtils.ring(world, Particle.ENCHANT, target.clone().add(0, 0.1, 0),
+                        pulseR * 0.6, (int)(pulseR * 2));
+                }
+
+                // Damage
+                if (tick % 4 == 0) {
+                    for (Entity e : world.getNearbyEntities(target, radius, height, radius)) {
+                        if (!(e instanceof LivingEntity le) || e == player || le.isDead()) continue;
+                        le.damage(dmgPerTick, player);
+                        le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 3));
+                        if (tick % 12 == 0) le.setVelocity(new Vector(0, 1.4, 0));
+                    }
+                }
+
                 tick++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    private static void spawnPillar(Location center, World world, double radius, double height) {
-        for (double y = 0; y <= height; y += 5.0) {
-            Location p = center.clone().add(0, y, 0);
-            ParticleUtils.ring(world, Particle.END_ROD, p,
-                radius * (1 - (y / height) * 0.5),
-                Math.max(12, (int)(radius * 3)));
+    /**
+     * Spawns END_ROD particles at random X/Z within radius at full height,
+     * offset slightly so they appear to be falling streaks each frame.
+     * Cheap: just a handful of point-particles staggered vertically.
+     */
+    private static void spawnFallingBeams(Location center, World world, double radius, double height, int tick) {
+        // 6 falling streaks per call — each a short vertical line of 4 points
+        double angleOffset = tick * 0.18; // slow rotation so they don't look static
+        int beamCount = 6;
+        for (int i = 0; i < beamCount; i++) {
+            double a = (Math.PI * 2 / beamCount) * i + angleOffset;
+            double r = radius * (0.3 + 0.7 * ((i % 3) / 2.0 + 0.2));
+            double x = Math.cos(a) * r;
+            double z = Math.sin(a) * r;
+
+            // Streak position falls over time using tick as offset
+            double baseY = height - (tick % 60) * (height / 60.0);
+
+            for (int seg = 0; seg < 4; seg++) {
+                double y = baseY + seg * 4.0;
+                if (y < 0 || y > height) continue;
+                Location pt = center.clone().add(x, y, z);
+                world.spawnParticle(Particle.END_ROD, pt, 1, 0.05, 0.2, 0.05, 0.02);
+            }
+        }
+
+        // A few random inner sparkles for depth
+        if (tick % 6 == 0) {
+            for (int i = 0; i < 3; i++) {
+                double a = Math.random() * Math.PI * 2;
+                double r = Math.random() * radius * 0.8;
+                double y = Math.random() * height;
+                world.spawnParticle(Particle.END_ROD,
+                    center.clone().add(Math.cos(a) * r, y, Math.sin(a) * r),
+                    1, 0, 0, 0, 0.04);
+            }
         }
     }
 }
